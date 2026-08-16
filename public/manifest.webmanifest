@@ -1,0 +1,17 @@
+{
+  "name": "مديون — إدارة الديون والمصاريف",
+  "short_name": "مديون",
+  "description": "تطبيق عربي لإدارة الديون والمصاريف مع مساعد ذكي لخطط السداد.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

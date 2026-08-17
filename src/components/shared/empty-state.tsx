@@ -29,7 +29,7 @@ export function EmptyState({
       )}
     >
       <span
-        className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+        className="flex size-12 animate-scale-in items-center justify-center rounded-xl bg-muted text-muted-foreground"
         aria-hidden
       >
         <Icon className="size-6" />

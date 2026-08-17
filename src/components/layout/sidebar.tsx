@@ -22,16 +22,28 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+        'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
+        'transition-colors duration-fast',
         active
           ? 'bg-primary/10 text-primary'
           : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
       )}
     >
-      {active ? (
-        <span className="absolute inset-y-1.5 -start-2 w-1 rounded-full bg-primary" aria-hidden />
-      ) : null}
-      <Icon className="size-[18px] shrink-0" />
+      <span
+        aria-hidden
+        className={cn(
+          'absolute inset-y-1.5 -start-2 w-1 rounded-full bg-primary',
+          'origin-center transition-transform duration-fast ease-out',
+          active ? 'scale-y-100' : 'scale-y-0',
+        )}
+      />
+      <Icon
+        className={cn(
+          'size-[18px] shrink-0 transition-transform duration-fast',
+          // The page is always RTL, so "forward" is a shift toward the start edge.
+          !active && 'group-hover:translate-x-0.5',
+        )}
+      />
       <span className="truncate">{item.label}</span>
     </Link>
   );

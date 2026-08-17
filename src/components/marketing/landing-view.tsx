@@ -136,7 +136,7 @@ function Hero() {
           <Button size="lg" asChild className="w-full sm:w-auto">
             <Link href="/login">
               ابدأ الآن
-              <ArrowLeft className="size-4" />
+              <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
             </Link>
           </Button>
           <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
@@ -238,7 +238,7 @@ function Features() {
 
         <div className="mt-10 grid gap-4 stagger sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, description }) => (
-            <Card key={title} className="p-5">
+            <Card key={title} className="hover-lift p-5">
               <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Icon className="size-5" />
               </span>
@@ -263,7 +263,7 @@ function HowItWorks() {
 
         <ol className="mt-10 grid gap-4 stagger sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, i) => (
-            <li key={step.title} className="rounded-xl border bg-card p-5">
+            <li key={step.title} className="hover-lift rounded-xl border bg-card p-5">
               <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground tabular">
                 {i + 1}
               </span>
@@ -293,7 +293,7 @@ function FinalCta() {
         <Button size="lg" asChild className="mt-6">
           <Link href="/login">
             ابدأ باستخدام {APP_NAME}
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
           </Link>
         </Button>
       </div>

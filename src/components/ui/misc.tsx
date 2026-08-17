@@ -63,7 +63,10 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className={cn('size-full flex-1 bg-primary transition-transform duration-500', indicatorClassName)}
+      className={cn(
+        'size-full flex-1 bg-primary transition-transform duration-300 ease-out',
+        indicatorClassName,
+      )}
       style={{ transform: `translateX(${100 - (value || 0)}%)` }}
     />
   </ProgressPrimitive.Root>
@@ -103,7 +106,7 @@ const Switch = React.forwardRef<
   <SwitchPrimitive.Root
     ref={ref}
     className={cn(
-      'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors',
+      'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-fast',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:bg-primary data-[state=unchecked]:bg-input',
@@ -113,7 +116,7 @@ const Switch = React.forwardRef<
   >
     <SwitchPrimitive.Thumb
       className={cn(
-        'pointer-events-none block size-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
+        'pointer-events-none block size-5 rounded-full bg-background shadow-lg ring-0 transition-transform duration-fast ease-out',
         // RTL: the thumb travels toward the start edge when checked.
         'data-[state=checked]:-translate-x-5 data-[state=unchecked]:translate-x-0',
       )}
@@ -150,7 +153,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all',
+      'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-fast',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
       'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm',
       className,
@@ -195,7 +198,10 @@ const AlertDialogContent = React.forwardRef<
       className={cn(
         'fixed start-1/2 top-1/2 z-50 grid w-full max-w-md translate-x-1/2 -translate-y-1/2 gap-4',
         'border bg-card p-6 shadow-lg sm:rounded-xl',
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+        'data-[state=open]:animate-in data-[state=closed]:animate-out',
+        'data-[state=open]:duration-200 data-[state=closed]:duration-150',
+        'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
         className,
       )}
       {...props}

@@ -63,7 +63,7 @@ export function DashboardView({
         <Button asChild>
           <Link href="/debts">
             إدارة الديون
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
           </Link>
         </Button>
       </PageHeader>
@@ -163,7 +163,7 @@ export function DashboardView({
             <Button variant="ghost" size="sm" asChild>
               <Link href="/debts">
                 الكل
-                <ArrowLeft className="size-4" />
+                <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
               </Link>
             </Button>
           </div>

@@ -536,7 +536,18 @@ function DebtCard({
     Number(debt.amount) > 0 ? (Number(debt.paid_amount) / Number(debt.amount)) * 100 : 0;
 
   return (
-    <Card className="p-4" onClick={onOpen} role="button" tabIndex={0}>
+    <Card
+      className="hover-lift cursor-pointer p-4"
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
       <div className="flex items-start gap-3">
         <span
           className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"

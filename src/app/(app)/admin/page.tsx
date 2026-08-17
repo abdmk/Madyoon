@@ -177,7 +177,7 @@ export default async function AdminPage() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/admin/audit-logs">
                 كل السجلات
-                <ArrowLeft className="size-4" />
+                <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
               </Link>
             </Button>
           </div>

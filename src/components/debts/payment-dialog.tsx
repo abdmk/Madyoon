@@ -175,13 +175,14 @@ export function PaymentDialog({
                       onClick={() => setMethod(key)}
                       aria-pressed={active}
                       className={cn(
-                        'flex h-10 items-center justify-center gap-1.5 rounded-lg border text-sm font-medium transition-colors duration-fast',
+                        'flex h-10 items-center justify-center gap-1.5 rounded-lg border text-sm font-medium',
+                        'transition-[background-color,border-color,color,transform] duration-fast active:scale-[0.97]',
                         active
                           ? 'border-primary/40 bg-primary/10 text-primary'
                           : 'border-input bg-card text-muted-foreground hover:bg-secondary',
                       )}
                     >
-                      <Icon className="size-4" />
+                      <Icon className={cn('size-4 transition-transform duration-fast', active && 'scale-110')} />
                       {PAYMENT_METHODS[key].label}
                     </button>
                   );

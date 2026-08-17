@@ -182,6 +182,20 @@
   .stagger > *:nth-child(5) { animation-delay: 160ms; }
   .stagger > *:nth-child(6) { animation-delay: 200ms; }
 
+  /* A tasteful lift for anything clickable that isn't a button — stat tiles,
+     feature cards, list rows. Never used on static content. */
+  .hover-lift {
+    transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 150ms cubic-bezier(0.22, 1, 0.36, 1), border-color 150ms ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .hover-lift:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-xs);
+  }
+
   /* Skeletons shimmer instead of pulsing — closer to "content is arriving". */
   .shimmer {
     @apply relative overflow-hidden bg-muted;

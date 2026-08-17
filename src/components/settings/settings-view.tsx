@@ -347,9 +347,9 @@ function SharingCard({
                   aria-label="نسخ الرمز"
                 >
                   {copied === share.invite_code ? (
-                    <Check className="size-4 text-success" />
+                    <Check key="check" className="size-4 animate-scale-in text-success" />
                   ) : (
-                    <Copy className="size-4" />
+                    <Copy key="copy" className="size-4" />
                   )}
                 </Button>
                 <Button

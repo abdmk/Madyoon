@@ -37,7 +37,7 @@ export function StatCard({
   className?: string;
 }) {
   return (
-    <Card className={cn('p-4 sm:p-5', className)}>
+    <Card className={cn('hover-lift p-4 sm:p-5', className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[13px] font-medium text-muted-foreground">{label}</p>

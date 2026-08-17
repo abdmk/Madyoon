@@ -4,9 +4,11 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
+  Calculator,
   CalendarDays,
   Download,
   FileText,
+  LayoutGrid,
   MoreVertical,
   Pencil,
   Plus,
@@ -210,9 +212,10 @@ export function ExpensesView({
         <StatCard
           label="متوسط العملية"
           value={formatAmount(total ? sum / total : 0, currency)}
+          icon={Calculator}
           tone="muted"
         />
-        <StatCard label="عدد التصنيفات" value={byCategory.length} tone="success" />
+        <StatCard label="عدد التصنيفات" value={byCategory.length} icon={LayoutGrid} tone="success" />
       </div>
 
       {/* Filters ---------------------------------------------------------- */}

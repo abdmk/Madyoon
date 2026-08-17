@@ -4,6 +4,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
+  AlertTriangle,
   CheckCircle2,
   Download,
   FileText,
@@ -15,6 +16,7 @@ import {
   Printer,
   Search,
   Trash2,
+  TrendingDown,
   Wallet,
   X,
 } from 'lucide-react';
@@ -180,13 +182,14 @@ export function DebtsView({
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
-        <StatCard label="الإجمالي" value={formatAmount(summary.total, currency)} tone="primary" />
-        <StatCard label="المتبقي" value={formatAmount(summary.remaining, currency)} tone="warning" />
-        <StatCard label="المسدد" value={formatAmount(summary.paid, currency)} tone="success" />
+        <StatCard label="الإجمالي" value={formatAmount(summary.total, currency)} icon={Wallet} tone="primary" />
+        <StatCard label="المتبقي" value={formatAmount(summary.remaining, currency)} icon={TrendingDown} tone="warning" />
+        <StatCard label="المسدد" value={formatAmount(summary.paid, currency)} icon={CheckCircle2} tone="success" />
         <StatCard
           label="متأخرة"
           value={summary.overdue}
           hint={`${summary.dueSoon} قريبة الاستحقاق`}
+          icon={AlertTriangle}
           tone="destructive"
         />
       </div>

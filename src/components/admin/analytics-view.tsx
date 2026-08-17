@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, CheckCircle2, Receipt, UserPlus, Wallet } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { StatCard } from '@/components/shared/stat-card';
@@ -83,14 +83,15 @@ export function AnalyticsView({ points }: { points: AnalyticsPoint[] }) {
       <PageHeader title="التحليلات" description="اتجاهات النظام خلال آخر ١٢ شهراً." />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="ديون مضافة" value={formatAmount(totals.debts, currency)} tone="primary" />
-        <StatCard label="مبالغ مسددة" value={formatAmount(totals.paid, currency)} tone="success" />
+        <StatCard label="ديون مضافة" value={formatAmount(totals.debts, currency)} icon={Wallet} tone="primary" />
+        <StatCard label="مبالغ مسددة" value={formatAmount(totals.paid, currency)} icon={CheckCircle2} tone="success" />
         <StatCard
           label="مصاريف مسجّلة"
           value={formatAmount(totals.expenses, currency)}
+          icon={Receipt}
           tone="accent"
         />
-        <StatCard label="مستخدمون جدد" value={formatNumber(totals.users)} tone="muted" />
+        <StatCard label="مستخدمون جدد" value={formatNumber(totals.users)} icon={UserPlus} tone="muted" />
       </div>
 
       {!hasData ? (

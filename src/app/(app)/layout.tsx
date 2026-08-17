@@ -3,6 +3,7 @@ import { getProfile } from '@/lib/supabase/server';
 import { getDueAlerts } from '@/lib/data';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { AlertsBellServer } from '@/components/layout/alerts-bell-server';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { SessionProvider } from '@/components/session-provider';
 
@@ -10,8 +11,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const profile = await getProfile();
   if (!profile) redirect('/login');
 
-  // The bell needs eight rows and a count — not every debt the account owns.
-  const alerts = await getDueAlerts(profile.id);
+  // Not awaited: the bell renders in its own Suspense boundary (see
+  // AlertsBellServer) so this round trip runs in parallel with whatever the
+  // page itself fetches, instead of blocking it.
+  const alertsPromise = getDueAlerts(profile.id);
 
   return (
     <SessionProvider profile={profile}>
@@ -19,7 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Sidebar profile={profile} />
 
         <div className="lg:ps-64">
-          <Header profile={profile} alerts={alerts} />
+          <Header profile={profile} alertsSlot={<AlertsBellServer promise={alertsPromise} />} />
           <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pb-12 lg:pt-8">
             {children}
           </main>

@@ -16,10 +16,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/store/use-app-store';
 import { initials } from '@/lib/format';
-import { DueAlertsBell } from './due-alerts-bell';
-import type { DueAlerts, Profile } from '@/lib/types';
+import type { Profile } from '@/lib/types';
 
-export function Header({ profile, alerts }: { profile: Profile; alerts: DueAlerts }) {
+export function Header({
+  profile,
+  alertsSlot,
+}: {
+  profile: Profile;
+  /** The due-alerts bell, streamed in separately — see `AlertsBellServer`. */
+  alertsSlot: React.ReactNode;
+}) {
   const setSidebarOpen = useAppStore((s) => s.setSidebarOpen);
 
   return (
@@ -36,7 +42,7 @@ export function Header({ profile, alerts }: { profile: Profile; alerts: DueAlert
 
       <div className="flex-1" />
 
-      <DueAlertsBell alerts={alerts} />
+      {alertsSlot}
       <ThemeToggle />
 
       <Separator orientation="vertical" className="mx-1 h-6" />

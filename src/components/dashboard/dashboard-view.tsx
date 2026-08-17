@@ -186,6 +186,7 @@ export function DashboardView({
               {urgent.map((debt) => {
                 const due = dueInfo(debt);
                 const cat = DEBT_CATEGORIES[debt.category];
+                const CatIcon = cat.icon;
                 const pct =
                   Number(debt.amount) > 0
                     ? (Number(debt.paid_amount) / Number(debt.amount)) * 100
@@ -194,11 +195,11 @@ export function DashboardView({
                 return (
                   <li key={debt.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                     <span
-                      className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"
-                      style={{ backgroundColor: `${cat.color}1a` }}
+                      className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
                       aria-hidden
                     >
-                      {cat.icon}
+                      <CatIcon className="size-5" />
                     </span>
 
                     <div className="min-w-0 flex-1">

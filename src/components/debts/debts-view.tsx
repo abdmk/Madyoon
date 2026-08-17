@@ -245,11 +245,17 @@ export function DebtsView({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">كل التصنيفات</SelectItem>
-                  {Object.entries(DEBT_CATEGORIES).map(([key, cat]) => (
-                    <SelectItem key={key} value={key}>
-                      {cat.icon} {cat.label}
-                    </SelectItem>
-                  ))}
+                  {Object.entries(DEBT_CATEGORIES).map(([key, cat]) => {
+                    const CatIcon = cat.icon;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <span className="inline-flex items-center gap-2">
+                          <CatIcon className="size-4" style={{ color: cat.color }} />
+                          {cat.label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
 
@@ -358,6 +364,7 @@ export function DebtsView({
                   {rows.map((debt) => {
                     const due = dueInfo(debt);
                     const cat = DEBT_CATEGORIES[debt.category];
+                    const CatIcon = cat.icon;
                     const pct =
                       Number(debt.amount) > 0
                         ? (Number(debt.paid_amount) / Number(debt.amount)) * 100
@@ -371,7 +378,13 @@ export function DebtsView({
                       >
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <span aria-hidden>{cat.icon}</span>
+                            <span
+                              className="flex size-8 shrink-0 items-center justify-center rounded-lg"
+                              style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
+                              aria-hidden
+                            >
+                              <CatIcon className="size-4" />
+                            </span>
                             <div className="min-w-0">
                               <p className="truncate font-medium">{debt.creditor_name}</p>
                               <div className="mt-0.5 flex items-center gap-1.5">
@@ -532,6 +545,7 @@ function DebtCard({
 }) {
   const due = dueInfo(debt);
   const cat = DEBT_CATEGORIES[debt.category];
+  const CatIcon = cat.icon;
   const pct =
     Number(debt.amount) > 0 ? (Number(debt.paid_amount) / Number(debt.amount)) * 100 : 0;
 
@@ -550,11 +564,11 @@ function DebtCard({
     >
       <div className="flex items-start gap-3">
         <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"
-          style={{ backgroundColor: `${cat.color}1a` }}
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
           aria-hidden
         >
-          {cat.icon}
+          <CatIcon className="size-5" />
         </span>
 
         <div className="min-w-0 flex-1">

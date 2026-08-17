@@ -1,3 +1,12 @@
+import {
+  Building2,
+  CreditCard,
+  Landmark,
+  Tag,
+  FileText,
+  User,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { DebtCategory, DebtStatus, Priority } from './types';
 
 export const APP_NAME = 'مديون';
@@ -15,14 +24,14 @@ export const CURRENCIES = [
 
 export const DEBT_CATEGORIES: Record<
   DebtCategory,
-  { label: string; icon: string; color: string }
+  { label: string; icon: LucideIcon; color: string }
 > = {
-  personal: { label: 'ديون شخصية', icon: '👤', color: 'hsl(217 91% 60%)' },
-  credit_card: { label: 'بطاقات ائتمان', icon: '💳', color: 'hsl(258 90% 66%)' },
-  loan: { label: 'قروض', icon: '🏦', color: 'hsl(199 89% 48%)' },
-  bill: { label: 'فواتير', icon: '🧾', color: 'hsl(38 92% 50%)' },
-  business: { label: 'ديون تجارية', icon: '🏢', color: 'hsl(142 71% 45%)' },
-  other: { label: 'أخرى', icon: '📌', color: 'hsl(215 16% 47%)' },
+  personal: { label: 'ديون شخصية', icon: User, color: 'hsl(217 91% 60%)' },
+  credit_card: { label: 'بطاقات ائتمان', icon: CreditCard, color: 'hsl(258 90% 66%)' },
+  loan: { label: 'قروض', icon: Landmark, color: 'hsl(199 89% 48%)' },
+  bill: { label: 'فواتير', icon: FileText, color: 'hsl(38 92% 50%)' },
+  business: { label: 'ديون تجارية', icon: Building2, color: 'hsl(142 71% 45%)' },
+  other: { label: 'أخرى', icon: Tag, color: 'hsl(215 16% 47%)' },
 };
 
 export const PRIORITIES: Record<

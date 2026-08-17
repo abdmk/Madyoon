@@ -35,14 +35,14 @@ const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      style={{ '--tw-enter-timing': 'cubic-bezier(0.32, 0.72, 0, 1)' } as React.CSSProperties}
       className={cn(
         'fixed start-1/2 top-1/2 z-50 grid w-full max-w-lg translate-x-1/2 -translate-y-1/2 gap-4',
         'max-h-[92dvh] overflow-y-auto border bg-card p-6 shadow-lg sm:rounded-xl',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
-        'data-[state=open]:duration-200 data-[state=closed]:duration-150',
+        'data-[state=open]:duration-300 data-[state=closed]:duration-200',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
-        'data-[state=closed]:slide-out-to-bottom-2 data-[state=open]:slide-in-from-bottom-2',
+        'data-[state=closed]:zoom-out-[0.97] data-[state=open]:zoom-in-[0.92]',
         className,
       )}
       {...props}

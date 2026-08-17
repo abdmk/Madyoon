@@ -67,6 +67,7 @@ export function DebtDetailDialog({
 
   const debt = detail?.debt;
   const cat = debt ? DEBT_CATEGORIES[debt.category] : null;
+  const CatIcon = cat?.icon ?? null;
   const due = debt ? dueInfo(debt) : null;
   const pct = debt && Number(debt.amount) > 0 ? (Number(debt.paid_amount) / Number(debt.amount)) * 100 : 0;
 
@@ -80,11 +81,11 @@ export function DebtDetailDialog({
             <DialogHeader>
               <div className="flex items-start gap-3">
                 <span
-                  className="flex size-11 shrink-0 items-center justify-center rounded-xl text-xl"
-                  style={{ backgroundColor: `${cat!.color}1a` }}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: `${cat!.color}1a`, color: cat!.color }}
                   aria-hidden
                 >
-                  {cat!.icon}
+                  {CatIcon && <CatIcon className="size-5" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <DialogTitle className="flex items-center gap-2">

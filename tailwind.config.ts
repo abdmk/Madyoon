@@ -71,8 +71,8 @@ const config: Config = {
         lg: 'var(--shadow-lg)',
       },
       transitionTimingFunction: {
-        // A gentle overshoot-free ease — everything in the app uses it.
         out: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        spring: 'cubic-bezier(0.32, 0.72, 0, 1)',
       },
       transitionDuration: {
         fast: '150ms',

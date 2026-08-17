@@ -262,11 +262,17 @@ export function DebtFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(DEBT_CATEGORIES).map(([key, cat]) => (
-                    <SelectItem key={key} value={key}>
-                      {cat.icon} {cat.label}
-                    </SelectItem>
-                  ))}
+                  {Object.entries(DEBT_CATEGORIES).map(([key, cat]) => {
+                    const CatIcon = cat.icon;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <span className="inline-flex items-center gap-2">
+                          <CatIcon className="size-4" style={{ color: cat.color }} />
+                          {cat.label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

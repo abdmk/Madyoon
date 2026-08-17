@@ -1,9 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { AlertCircle, BarChart3, Bot, ShieldCheck, Users } from 'lucide-react';
+import { AlertCircle, BarChart3, Bot, CheckCircle2, ShieldCheck, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const HIGHLIGHTS = [
@@ -14,18 +17,18 @@ const HIGHLIGHTS = [
 ];
 
 const ERRORS: Record<string, string> = {
-  oauth: 'تعذّر إكمال تسجيل الدخول عبر Google. حاول مرة أخرى.',
+  oauth: 'تعذّر إكمال تسجيل الدخول عبر Google. حاول مرة أخرى أو استخدم البريد الإلكتروني.',
   session: 'انتهت الجلسة. يرجى تسجيل الدخول من جديد.',
 };
 
 export function LoginCard({ next, error }: { next?: string; error?: string }) {
-  const [loading, setLoading] = React.useState(false);
+  const [googleLoading, setGoogleLoading] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(
     error ? (ERRORS[error] ?? 'حدث خطأ غير متوقع.') : null,
   );
 
   async function signInWithGoogle() {
-    setLoading(true);
+    setGoogleLoading(true);
     setMessage(null);
     const supabase = getSupabaseBrowserClient();
 
@@ -41,8 +44,8 @@ export function LoginCard({ next, error }: { next?: string; error?: string }) {
     });
 
     if (signInError) {
-      setMessage('تعذّر بدء تسجيل الدخول. تأكد من تفعيل Google في إعدادات Supabase.');
-      setLoading(false);
+      setMessage('تعذّر بدء تسجيل الدخول عبر Google. استخدم البريد الإلكتروني بالأسفل.');
+      setGoogleLoading(false);
     }
     // On success the browser navigates away, so keep the spinner running.
   }
@@ -52,7 +55,7 @@ export function LoginCard({ next, error }: { next?: string; error?: string }) {
       <CardContent className="space-y-6 p-6 sm:p-8">
         <div className="space-y-1.5 text-center">
           <h2 className="font-display text-xl font-semibold">مرحباً بك</h2>
-          <p className="text-sm text-muted-foreground">سجّل الدخول بحساب Google للمتابعة</p>
+          <p className="text-sm text-muted-foreground">سجّل الدخول للمتابعة</p>
         </div>
 
         {message ? (
@@ -65,10 +68,24 @@ export function LoginCard({ next, error }: { next?: string; error?: string }) {
           </div>
         ) : null}
 
-        <Button size="lg" className="w-full" loading={loading} onClick={signInWithGoogle}>
-          {!loading ? <GoogleIcon /> : null}
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full"
+          loading={googleLoading}
+          onClick={signInWithGoogle}
+        >
+          {!googleLoading ? <GoogleIcon /> : null}
           المتابعة عبر Google
         </Button>
+
+        <div className="flex items-center gap-3">
+          <Separator className="flex-1" />
+          <span className="text-xs text-muted-foreground">أو بالبريد الإلكتروني</span>
+          <Separator className="flex-1" />
+        </div>
+
+        <EmailPasswordForm next={next} onError={setMessage} />
 
         <ul className="space-y-3 border-t pt-6">
           {HIGHLIGHTS.map(({ icon: Icon, text }) => (
@@ -82,6 +99,136 @@ export function LoginCard({ next, error }: { next?: string; error?: string }) {
         </ul>
       </CardContent>
     </Card>
+  );
+}
+
+function EmailPasswordForm({
+  next,
+  onError,
+}: {
+  next?: string;
+  onError: (message: string | null) => void;
+}) {
+  const [mode, setMode] = React.useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [confirmSent, setConfirmSent] = React.useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    onError(null);
+    setConfirmSent(false);
+
+    if (!email.trim() || password.length < 6) {
+      onError('أدخل بريداً صحيحاً وكلمة مرور من ٦ أحرف على الأقل.');
+      return;
+    }
+
+    setLoading(true);
+    const supabase = getSupabaseBrowserClient();
+
+    if (mode === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      setLoading(false);
+
+      if (error) {
+        onError(
+          error.message.includes('Invalid login credentials')
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+            : 'تعذّر تسجيل الدخول. حاول مرة أخرى.',
+        );
+        return;
+      }
+
+      window.location.href = next && next.startsWith('/') ? next : '/dashboard';
+      return;
+    }
+
+    // Sign-up
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    setLoading(false);
+
+    if (error) {
+      onError(
+        error.message.includes('already registered')
+          ? 'هذا البريد مسجّل مسبقاً. سجّل الدخول بدلاً من ذلك.'
+          : 'تعذّر إنشاء الحساب. حاول مرة أخرى.',
+      );
+      return;
+    }
+
+    // If email confirmation is off, Supabase returns an active session right away.
+    if (data.session) {
+      window.location.href = next && next.startsWith('/') ? next : '/dashboard';
+      return;
+    }
+
+    setConfirmSent(true);
+  }
+
+  if (confirmSent) {
+    return (
+      <div className="flex items-start gap-2 rounded-lg border border-success/25 bg-success/10 p-3 text-sm text-success">
+        <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+        <span>أرسلنا رابط تأكيد إلى بريدك. افتحه لتفعيل الحساب ثم سجّل الدخول.</span>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="email">البريد الإلكتروني</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          dir="ltr"
+          className="text-start"
+          required
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="password">كلمة المرور</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+          dir="ltr"
+          className="text-start"
+          minLength={6}
+          required
+        />
+      </div>
+
+      <Button type="submit" className="w-full" loading={loading}>
+        {mode === 'signin' ? 'تسجيل الدخول' : 'إنشاء حساب'}
+      </Button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setMode((m) => (m === 'signin' ? 'signup' : 'signin'));
+          onError(null);
+        }}
+        className="w-full text-center text-xs text-muted-foreground hover:text-foreground hover:underline"
+      >
+        {mode === 'signin' ? 'ليس لديك حساب؟ أنشئ واحداً' : 'لديك حساب؟ سجّل الدخول'}
+      </button>
+    </form>
   );
 }
 

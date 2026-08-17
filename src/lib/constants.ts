@@ -66,6 +66,11 @@ export const DEBT_STATUS: Record<DebtStatus, { label: string; className: string 
   },
 };
 
+export const PAYMENT_METHODS: Record<'cash' | 'transfer', { label: string; icon: string }> = {
+  cash: { label: 'نقداً', icon: '💵' },
+  transfer: { label: 'تحويل بنكي', icon: '🏦' },
+};
+
 export const EXPENSE_CATEGORIES = [
   { value: 'food', label: 'طعام وشراب', icon: '🍽️', color: 'hsl(38 92% 50%)' },
   { value: 'transport', label: 'مواصلات', icon: '🚗', color: 'hsl(217 91% 60%)' },

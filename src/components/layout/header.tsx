@@ -17,9 +17,9 @@ import {
 import { useAppStore } from '@/store/use-app-store';
 import { initials } from '@/lib/format';
 import { DueAlertsBell } from './due-alerts-bell';
-import type { Profile } from '@/lib/types';
+import type { DueAlerts, Profile } from '@/lib/types';
 
-export function Header({ profile }: { profile: Profile }) {
+export function Header({ profile, alerts }: { profile: Profile; alerts: DueAlerts }) {
   const setSidebarOpen = useAppStore((s) => s.setSidebarOpen);
 
   return (
@@ -36,7 +36,7 @@ export function Header({ profile }: { profile: Profile }) {
 
       <div className="flex-1" />
 
-      <DueAlertsBell />
+      <DueAlertsBell alerts={alerts} />
       <ThemeToggle />
 
       <Separator orientation="vertical" className="mx-1 h-6" />

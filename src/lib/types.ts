@@ -24,10 +24,13 @@ export interface Profile {
   updated_at: string;
 }
 
+export type PaymentMethod = 'cash' | 'transfer';
+
 export interface Debt {
   id: string;
   user_id: string;
   creditor_name: string;
+  phone: string | null;
   amount: number;
   paid_amount: number;
   /** Generated column: max(amount - paid_amount, 0). */
@@ -43,6 +46,23 @@ export interface Debt {
   updated_at: string;
 }
 
+export interface DebtPayment {
+  id: string;
+  debt_id: string;
+  user_id: string;
+  amount: number;
+  method: PaymentMethod;
+  paid_at: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface DebtDetail {
+  debt: Debt;
+  payments: DebtPayment[];
+  paymentsCount: number;
+}
+
 export interface Expense {
   id: string;
   user_id: string;
@@ -54,6 +74,79 @@ export interface Expense {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * What the debts list actually renders. `notes`, `user_id` and the timestamps
+ * are left in Postgres until a row is opened — see `getDebtDetail`.
+ */
+export type DebtListItem = Omit<Debt, 'user_id' | 'notes' | 'created_at' | 'updated_at'>;
+
+/** What the expenses list renders. */
+export type ExpenseListItem = Omit<
+  Expense,
+  'user_id' | 'notes' | 'created_at' | 'updated_at'
+>;
+
+export interface DebtsSummary {
+  total: number;
+  paid: number;
+  remaining: number;
+  count: number;
+  settled: number;
+  overdue: number;
+  dueSoon: number;
+}
+
+export interface DebtsPage {
+  rows: DebtListItem[];
+  total: number;
+  summary: DebtsSummary;
+}
+
+export interface ExpenseCategoryTotal {
+  category: string;
+  total: number;
+  count: number;
+}
+
+export interface ExpensesPage {
+  rows: ExpenseListItem[];
+  total: number;
+  sum: number;
+  monthTotal: number;
+  byCategory: ExpenseCategoryTotal[];
+}
+
+export interface DashboardData {
+  debts: {
+    total: number;
+    paid: number;
+    remaining: number;
+    count: number;
+    settled: number;
+    active: number;
+    overdue: number;
+    dueSoon: number;
+  };
+  expenses: { count: number; monthTotal: number };
+  breakdown: { key: string; value: number }[];
+  trend: { month: string; total: number }[];
+  urgent: DebtListItem[];
+}
+
+export interface DueAlertRow {
+  id: string;
+  creditor_name: string;
+  remaining_amount: number;
+  currency: string;
+  due_date: string;
+  status: DebtStatus;
+}
+
+export interface DueAlerts {
+  count: number;
+  rows: DueAlertRow[];
 }
 
 export interface SharedAccount {

@@ -58,9 +58,26 @@ const config: Config = {
         },
       },
       borderRadius: {
+        xl: 'calc(var(--radius) + 4px)',
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 3px)',
+        sm: 'calc(var(--radius) - 6px)',
+      },
+      boxShadow: {
+        xs: 'var(--shadow-xs)',
+        sm: 'var(--shadow-sm)',
+        DEFAULT: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
+      },
+      transitionTimingFunction: {
+        // A gentle overshoot-free ease — everything in the app uses it.
+        out: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+      transitionDuration: {
+        fast: '150ms',
+        DEFAULT: '200ms',
+        slow: '300ms',
       },
       keyframes: {
         'accordion-down': {
@@ -72,17 +89,24 @@ const config: Config = {
           to: { height: '0' },
         },
         'fade-in': {
-          from: { opacity: '0', transform: 'translateY(4px)' },
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'fade-up': {
+          from: { opacity: '0', transform: 'translateY(6px)' },
           to: { opacity: '1', transform: 'none' },
         },
-        shimmer: {
-          '100%': { transform: 'translateX(-100%)' },
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.97)' },
+          to: { opacity: '1', transform: 'none' },
         },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in': 'fade-in 0.3s ease-out both',
+        'accordion-down': 'accordion-down 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        'accordion-up': 'accordion-up 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        'fade-in': 'fade-in 200ms ease-out both',
+        'fade-up': 'fade-up 260ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'scale-in': 'scale-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

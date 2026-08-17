@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/select';
 import { CURRENCIES, EXPENSE_CATEGORIES } from '@/lib/constants';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useAppStore } from '@/store/use-app-store';
+import { useSession } from '@/components/session-provider';
+import { useRouter } from 'next/navigation';
 import type { Expense } from '@/lib/types';
 
 interface FormState {
@@ -56,26 +57,27 @@ export function ExpenseFormDialog({
   open,
   onOpenChange,
   expense,
+  loading,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   expense: Expense | null;
+  /** True while a field the list row doesn't carry (e.g. notes) is still loading. */
+  loading?: boolean;
 }) {
-  const profile = useAppStore((s) => s.profile);
-  const upsertExpense = useAppStore((s) => s.upsertExpense);
+  const { profile } = useSession();
+  const router = useRouter();
 
-  const [form, setForm] = React.useState<FormState>(() =>
-    toForm(expense, profile?.currency ?? 'IQD'),
-  );
+  const [form, setForm] = React.useState<FormState>(() => toForm(expense, profile.currency));
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Partial<Record<keyof FormState, string>>>({});
 
   React.useEffect(() => {
-    if (open) {
-      setForm(toForm(expense, profile?.currency ?? 'IQD'));
+    if (open && !loading) {
+      setForm(toForm(expense, profile.currency));
       setErrors({});
     }
-  }, [open, expense, profile?.currency]);
+  }, [open, loading, expense, profile.currency]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -96,7 +98,7 @@ export function ExpenseFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!profile || !validate()) return;
+    if (!validate()) return;
 
     setSaving(true);
     const supabase = getSupabaseBrowserClient();
@@ -125,7 +127,6 @@ export function ExpenseFormDialog({
       return;
     }
 
-    upsertExpense(data as Expense);
     void supabase.rpc('write_log', {
       p_action: expense ? 'expense.update' : 'expense.create',
       p_entity: 'expenses',
@@ -135,6 +136,7 @@ export function ExpenseFormDialog({
 
     toast.success(expense ? 'تم حفظ التعديلات' : 'تمت إضافة المصروف');
     onOpenChange(false);
+    router.refresh();
   }
 
   return (
@@ -148,6 +150,7 @@ export function ExpenseFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <fieldset disabled={loading} className="space-y-4 disabled:opacity-60">
           <div className="space-y-2">
             <Label htmlFor="description">الوصف *</Label>
             <Input
@@ -235,9 +238,10 @@ export function ExpenseFormDialog({
               placeholder="اختياري"
             />
           </div>
+          </fieldset>
 
           <DialogFooter>
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving || loading}>
               {expense ? 'حفظ التعديلات' : 'إضافة المصروف'}
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

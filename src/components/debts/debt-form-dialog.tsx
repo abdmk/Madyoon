@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,11 +23,12 @@ import {
 } from '@/components/ui/select';
 import { CURRENCIES, DEBT_CATEGORIES, PRIORITIES } from '@/lib/constants';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useAppStore } from '@/store/use-app-store';
+import { useSession } from '@/components/session-provider';
 import type { Debt, DebtCategory, Priority } from '@/lib/types';
 
 interface FormState {
   creditor_name: string;
+  phone: string;
   amount: string;
   paid_amount: string;
   currency: string;
@@ -40,6 +42,7 @@ interface FormState {
 function toForm(debt: Debt | null, defaultCurrency: string): FormState {
   return {
     creditor_name: debt?.creditor_name ?? '',
+    phone: debt?.phone ?? '',
     amount: debt ? String(debt.amount) : '',
     paid_amount: debt ? String(debt.paid_amount) : '0',
     currency: debt?.currency ?? defaultCurrency,
@@ -55,25 +58,32 @@ export function DebtFormDialog({
   open,
   onOpenChange,
   debt,
+  onSaved,
+  loading,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   debt: Debt | null;
+  /** Called with the saved row once the server confirms the write. */
+  onSaved?: (debt: Debt) => void;
+  /** True while a field the list row doesn't carry (e.g. notes) is still loading. */
+  loading?: boolean;
 }) {
-  const profile = useAppStore((s) => s.profile);
-  const upsertDebt = useAppStore((s) => s.upsertDebt);
+  const { profile } = useSession();
+  const router = useRouter();
 
-  const [form, setForm] = React.useState<FormState>(() => toForm(debt, profile?.currency ?? 'IQD'));
+  const [form, setForm] = React.useState<FormState>(() => toForm(debt, profile.currency));
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Partial<Record<keyof FormState, string>>>({});
 
-  // Re-seed whenever the dialog opens for a different row.
+  // Re-seed whenever the dialog opens for a different row, and again once the
+  // fields the list didn't carry (notes) finish loading.
   React.useEffect(() => {
-    if (open) {
-      setForm(toForm(debt, profile?.currency ?? 'IQD'));
+    if (open && !loading) {
+      setForm(toForm(debt, profile.currency));
       setErrors({});
     }
-  }, [open, debt, profile?.currency]);
+  }, [open, loading, debt, profile.currency]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -101,7 +111,7 @@ export function DebtFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!profile || !validate()) return;
+    if (!validate()) return;
 
     setSaving(true);
     const supabase = getSupabaseBrowserClient();
@@ -109,6 +119,7 @@ export function DebtFormDialog({
     const payload = {
       user_id: profile.id,
       creditor_name: form.creditor_name.trim(),
+      phone: form.phone.trim() || null,
       amount: Number(form.amount),
       paid_amount: Number(form.paid_amount || 0),
       currency: form.currency,
@@ -133,7 +144,6 @@ export function DebtFormDialog({
       return;
     }
 
-    upsertDebt(data as Debt);
     void supabase.rpc('write_log', {
       p_action: debt ? 'debt.update' : 'debt.create',
       p_entity: 'debts',
@@ -141,8 +151,12 @@ export function DebtFormDialog({
       p_details: { creditor: payload.creditor_name, amount: payload.amount },
     });
 
+    onSaved?.(data as Debt);
     toast.success(debt ? 'تم حفظ التعديلات' : 'تمت إضافة الدين');
     onOpenChange(false);
+    // Re-fetches the current page from the server, so the list, totals and
+    // pagination all reflect the write without a client-side patch.
+    router.refresh();
   }
 
   return (
@@ -156,18 +170,35 @@ export function DebtFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="creditor">اسم الدائن *</Label>
-            <Input
-              id="creditor"
-              value={form.creditor_name}
-              onChange={(e) => set('creditor_name', e.target.value)}
-              placeholder="مثال: بنك الرافدين، أحمد، شركة الكهرباء"
-              aria-invalid={!!errors.creditor_name}
-            />
-            {errors.creditor_name ? (
-              <p className="text-xs text-destructive">{errors.creditor_name}</p>
-            ) : null}
+          <fieldset disabled={loading} className="space-y-4 disabled:opacity-60">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="creditor">اسم الدائن *</Label>
+              <Input
+                id="creditor"
+                value={form.creditor_name}
+                onChange={(e) => set('creditor_name', e.target.value)}
+                placeholder="مثال: بنك الرافدين، أحمد، شركة الكهرباء"
+                aria-invalid={!!errors.creditor_name}
+              />
+              {errors.creditor_name ? (
+                <p className="text-xs text-destructive">{errors.creditor_name}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">رقم الهاتف</Label>
+              <Input
+                id="phone"
+                type="tel"
+                inputMode="tel"
+                dir="ltr"
+                className="text-end"
+                value={form.phone}
+                onChange={(e) => set('phone', e.target.value)}
+                placeholder="اختياري"
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
@@ -289,9 +320,10 @@ export function DebtFormDialog({
               rows={3}
             />
           </div>
+          </fieldset>
 
           <DialogFooter>
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving || loading}>
               {debt ? 'حفظ التعديلات' : 'إضافة الدين'}
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

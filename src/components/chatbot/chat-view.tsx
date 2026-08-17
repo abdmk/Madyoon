@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/misc';
-import { useAppStore } from '@/store/use-app-store';
+import { useSession } from '@/components/session-provider';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { initials } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import type { ChatMessage, Conversation } from '@/lib/types';
+import type { ChatMessage, Conversation, Profile } from '@/lib/types';
 
 const SUGGESTIONS = [
   'ما هي أفضل خطة لسداد ديوني؟',
@@ -21,7 +21,7 @@ const SUGGESTIONS = [
 ];
 
 export function ChatView({ initialConversation }: { initialConversation: Conversation | null }) {
-  const profile = useAppStore((s) => s.profile);
+  const { profile } = useSession();
 
   const [conversationId, setConversationId] = React.useState<string | null>(
     initialConversation?.id ?? null,
@@ -53,7 +53,6 @@ export function ChatView({ initialConversation }: { initialConversation: Convers
   /** Persists the full transcript, creating the row on the first exchange. */
   const persist = React.useCallback(
     async (next: ChatMessage[]) => {
-      if (!profile) return;
       const supabase = getSupabaseBrowserClient();
 
       if (conversationId) {
@@ -303,7 +302,7 @@ function Bubble({
   pending,
 }: {
   message: ChatMessage;
-  profile: ReturnType<typeof useAppStore.getState>['profile'];
+  profile: Profile;
   pending?: boolean;
 }) {
   const isUser = message.role === 'user';
@@ -311,11 +310,11 @@ function Bubble({
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
       <Avatar className="mt-0.5 size-8 shrink-0">
-        {isUser && profile?.avatar_url ? (
+        {isUser && profile.avatar_url ? (
           <AvatarImage src={profile.avatar_url} alt="" referrerPolicy="no-referrer" />
         ) : null}
         <AvatarFallback className={cn(!isUser && 'bg-accent/10 text-accent')}>
-          {isUser ? initials(profile?.name, profile?.email) : <Bot className="size-4" />}
+          {isUser ? initials(profile.name, profile.email) : <Bot className="size-4" />}
         </AvatarFallback>
       </Avatar>
 

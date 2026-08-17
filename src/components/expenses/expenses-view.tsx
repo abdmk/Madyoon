@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import {
   CalendarDays,
   Download,
@@ -18,6 +19,7 @@ import {
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
 import { EmptyState } from '@/components/shared/empty-state';
+import { Pagination } from '@/components/shared/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -48,13 +50,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/misc';
 import { ExpenseFormDialog } from './expense-form-dialog';
-import { useAppStore } from '@/store/use-app-store';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
 import { formatAmount, formatDate } from '@/lib/format';
-import { sumExpenses } from '@/lib/stats';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import type { Expense } from '@/lib/types';
+import { PAGE_SIZE, expenseFiltersActive, expenseQueryString } from '@/lib/params';
+import { useDebouncedSearch, useListQuery } from '@/lib/use-list-query';
+import { cn } from '@/lib/utils';
+import type { Expense, ExpenseListItem, ExpensesPage } from '@/lib/types';
+import type { ExpenseQuery } from '@/lib/params';
 
 interface CategoryMeta {
   value: string;
@@ -79,54 +83,49 @@ function categoryOf(value: string): CategoryMeta {
   );
 }
 
-export function ExpensesView() {
-  const expenses = useAppStore((s) => s.expenses);
-  const removeExpense = useAppStore((s) => s.removeExpense);
-  const profile = useAppStore((s) => s.profile);
-  const filters = useAppStore((s) => s.expenseFilters);
-  const setFilters = useAppStore((s) => s.setExpenseFilters);
-  const resetFilters = useAppStore((s) => s.resetExpenseFilters);
+export function ExpensesView({
+  page,
+  query,
+  currency,
+}: {
+  page: ExpensesPage;
+  query: ExpenseQuery;
+  currency: string;
+}) {
+  const router = useRouter();
+  const { update, setPage, pending } = useListQuery(query, expenseQueryString);
+  const [search, setSearch] = useDebouncedSearch(query.search, (v) => update({ search: v }));
 
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Expense | null>(null);
-  const [deleting, setDeleting] = React.useState<Expense | null>(null);
+  const [editLoading, setEditLoading] = React.useState(false);
+  const [deleting, setDeleting] = React.useState<ExpenseListItem | null>(null);
 
-  const currency = profile?.currency ?? 'IQD';
-
-  const filtered = React.useMemo(() => {
-    const q = filters.search.trim().toLowerCase();
-    return expenses
-      .filter((e) => {
-        if (filters.category !== 'all' && e.category !== filters.category) return false;
-        if (filters.from && e.date < filters.from) return false;
-        if (filters.to && e.date > filters.to) return false;
-        if (q && !`${e.description} ${e.notes ?? ''}`.toLowerCase().includes(q)) return false;
-        return true;
-      })
-      .sort((a, b) => b.date.localeCompare(a.date) || b.created_at.localeCompare(a.created_at));
-  }, [expenses, filters]);
-
-  const total = React.useMemo(() => sumExpenses(filtered), [filtered]);
-
-  const monthTotal = React.useMemo(() => {
-    const prefix = new Date().toISOString().slice(0, 7);
-    return sumExpenses(expenses.filter((e) => e.date.startsWith(prefix)));
-  }, [expenses]);
-
-  const byCategory = React.useMemo(() => {
-    const map = new Map<string, number>();
-    for (const e of filtered) map.set(e.category, (map.get(e.category) ?? 0) + Number(e.amount));
-    return [...map.entries()]
-      .map(([key, value]) => ({ ...categoryOf(key), total: value }))
-      .sort((a, b) => b.total - a.total);
-  }, [filtered]);
-
-  const hasFilters =
-    !!filters.search || filters.category !== 'all' || !!filters.from || !!filters.to;
+  const { rows, total, sum, monthTotal, byCategory } = page;
+  const hasFilters = expenseFiltersActive(query);
 
   function openCreate() {
     setEditing(null);
     setFormOpen(true);
+  }
+
+  async function openEdit(expense: ExpenseListItem) {
+    setEditLoading(true);
+    setFormOpen(true);
+    setEditing({ ...expense, user_id: '', notes: null, created_at: '', updated_at: '' } as Expense);
+
+    const supabase = getSupabaseBrowserClient();
+    const { data } = await supabase
+      .from('expenses')
+      .select('notes')
+      .eq('id', expense.id)
+      .maybeSingle();
+    setEditLoading(false);
+    setEditing((prev) =>
+      prev && prev.id === expense.id
+        ? { ...prev, notes: (data?.notes as string | null) ?? null }
+        : prev,
+    );
   }
 
   async function confirmDelete() {
@@ -142,7 +141,6 @@ export function ExpensesView() {
       return;
     }
 
-    removeExpense(target.id);
     void supabase.rpc('write_log', {
       p_action: 'expense.delete',
       p_entity: 'expenses',
@@ -150,18 +148,22 @@ export function ExpensesView() {
       p_details: { description: target.description },
     });
     toast.success('تم حذف المصروف');
+    router.refresh();
   }
 
   function exportCsv() {
-    downloadCsv(timestampedName('madyoon-expenses'), filtered, [
+    downloadCsv(timestampedName('madyoon-expenses'), rows, [
       { header: 'الوصف', value: (e) => e.description },
       { header: 'التصنيف', value: (e) => categoryOf(e.category).label },
       { header: 'المبلغ', value: (e) => e.amount },
       { header: 'العملة', value: (e) => e.currency },
       { header: 'التاريخ', value: (e) => e.date },
-      { header: 'ملاحظات', value: (e) => e.notes ?? '' },
     ]);
-    toast.success('تم تصدير الملف');
+    toast.success('تم تصدير الصفحة الحالية');
+  }
+
+  function resetFilters() {
+    update({ search: '', category: 'all', from: '', to: '' });
   }
 
   return (
@@ -176,7 +178,7 @@ export function ExpensesView() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={exportCsv}>
               <FileText />
-              تصدير CSV
+              تصدير الصفحة الحالية CSV
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => printCurrentView()}>
               <Printer />
@@ -191,7 +193,7 @@ export function ExpensesView() {
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
         <StatCard
           label="مصاريف الشهر"
           value={formatAmount(monthTotal, currency)}
@@ -200,14 +202,14 @@ export function ExpensesView() {
         />
         <StatCard
           label="إجمالي المعروض"
-          value={formatAmount(total, currency)}
-          hint={`${filtered.length} عملية`}
+          value={formatAmount(sum, currency)}
+          hint={`${total} عملية`}
           icon={Receipt}
           tone="primary"
         />
         <StatCard
           label="متوسط العملية"
-          value={formatAmount(filtered.length ? total / filtered.length : 0, currency)}
+          value={formatAmount(total ? sum / total : 0, currency)}
           tone="muted"
         />
         <StatCard label="عدد التصنيفات" value={byCategory.length} tone="success" />
@@ -219,18 +221,15 @@ export function ExpensesView() {
           <div className="relative lg:col-span-1">
             <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={filters.search}
-              onChange={(e) => setFilters({ search: e.target.value })}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="ابحث…"
               className="pe-9"
               aria-label="بحث في المصاريف"
             />
           </div>
 
-          <Select
-            value={filters.category}
-            onValueChange={(v) => setFilters({ category: v })}
-          >
+          <Select value={query.category} onValueChange={(v) => update({ category: v })}>
             <SelectTrigger aria-label="التصنيف">
               <SelectValue />
             </SelectTrigger>
@@ -246,15 +245,15 @@ export function ExpensesView() {
 
           <Input
             type="date"
-            value={filters.from}
-            onChange={(e) => setFilters({ from: e.target.value })}
+            value={query.from}
+            onChange={(e) => update({ from: e.target.value })}
             aria-label="من تاريخ"
           />
           <div className="flex gap-2">
             <Input
               type="date"
-              value={filters.to}
-              onChange={(e) => setFilters({ to: e.target.value })}
+              value={query.to}
+              onChange={(e) => update({ to: e.target.value })}
               aria-label="إلى تاريخ"
             />
             {hasFilters ? (
@@ -266,20 +265,25 @@ export function ExpensesView() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div
+        className={cn(
+          'grid gap-5 transition-opacity duration-fast lg:grid-cols-3',
+          pending && 'opacity-60',
+        )}
+      >
         {/* List ----------------------------------------------------------- */}
-        <div className="lg:col-span-2">
-          {filtered.length === 0 ? (
+        <div className="space-y-4 lg:col-span-2">
+          {rows.length === 0 ? (
             <EmptyState
               icon={Receipt}
-              title={expenses.length === 0 ? 'لا توجد مصاريف بعد' : 'لا نتائج مطابقة'}
+              title={total === 0 && !hasFilters ? 'لا توجد مصاريف بعد' : 'لا نتائج مطابقة'}
               description={
-                expenses.length === 0
+                total === 0 && !hasFilters
                   ? 'ابدأ بتسجيل أول مصروف لمتابعة إنفاقك الشهري.'
                   : 'جرّب تعديل الفلاتر أو المدى الزمني.'
               }
               action={
-                expenses.length === 0 ? (
+                total === 0 && !hasFilters ? (
                   <Button onClick={openCreate}>
                     <Plus className="size-4" />
                     إضافة مصروف
@@ -292,71 +296,76 @@ export function ExpensesView() {
               }
             />
           ) : (
-            <Card className="overflow-hidden">
-              <ul className="divide-y">
-                {filtered.map((expense) => {
-                  const cat = categoryOf(expense.category);
-                  return (
-                    <li
-                      key={expense.id}
-                      className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/30 sm:p-4"
-                    >
-                      <span
-                        className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"
-                        style={{ backgroundColor: `${cat.color}1a` }}
-                        aria-hidden
+            <>
+              <Card className="overflow-hidden">
+                <ul className="divide-y stagger">
+                  {rows.map((expense) => {
+                    const cat = categoryOf(expense.category);
+                    return (
+                      <li
+                        key={expense.id}
+                        className="flex items-center gap-3 p-3 transition-colors duration-fast hover:bg-muted/30 sm:p-4"
                       >
-                        {cat.icon}
-                      </span>
+                        <span
+                          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                          style={{ backgroundColor: `${cat.color}1a` }}
+                          aria-hidden
+                        >
+                          {cat.icon}
+                        </span>
 
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{expense.description}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {cat.label} · {formatDate(expense.date)}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium">{expense.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {cat.label} · {formatDate(expense.date)}
+                          </p>
+                        </div>
+
+                        <p className="shrink-0 font-medium tabular">
+                          {formatAmount(expense.amount, expense.currency)}
                         </p>
-                      </div>
 
-                      <p className="shrink-0 font-medium tabular">
-                        {formatAmount(expense.amount, expense.currency)}
-                      </p>
+                        <div className="no-print">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={`إجراءات ${expense.description}`}
+                              >
+                                <MoreVertical className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={() => openEdit(expense)}>
+                                <Pencil />
+                                تعديل
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onSelect={() => setDeleting(expense)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 />
+                                حذف
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Card>
 
-                      <div className="no-print">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`إجراءات ${expense.description}`}
-                            >
-                              <MoreVertical className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onSelect={() => {
-                                setEditing(expense);
-                                setFormOpen(true);
-                              }}
-                            >
-                              <Pencil />
-                              تعديل
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onSelect={() => setDeleting(expense)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 />
-                              حذف
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Card>
+              <Pagination
+                page={query.page}
+                pageSize={PAGE_SIZE}
+                total={total}
+                onPageChange={setPage}
+                pending={pending}
+              />
+            </>
           )}
         </div>
 
@@ -372,13 +381,14 @@ export function ExpensesView() {
             ) : (
               <ul className="space-y-3">
                 {byCategory.map((c) => {
-                  const pct = total > 0 ? (c.total / total) * 100 : 0;
+                  const meta = categoryOf(c.category);
+                  const pct = sum > 0 ? (c.total / sum) * 100 : 0;
                   return (
-                    <li key={c.value}>
+                    <li key={c.category}>
                       <div className="flex items-center justify-between gap-2 text-sm">
                         <span className="flex min-w-0 items-center gap-2">
-                          <span aria-hidden>{c.icon}</span>
-                          <span className="truncate">{c.label}</span>
+                          <span aria-hidden>{meta.icon}</span>
+                          <span className="truncate">{meta.label}</span>
                         </span>
                         <span className="shrink-0 font-medium tabular">
                           {formatAmount(c.total, currency)}
@@ -399,7 +409,7 @@ export function ExpensesView() {
         </Card>
       </div>
 
-      <ExpenseFormDialog open={formOpen} onOpenChange={setFormOpen} expense={editing} />
+      <ExpenseFormDialog open={formOpen} onOpenChange={setFormOpen} expense={editing} loading={editLoading} />
 
       <AlertDialog open={!!deleting} onOpenChange={(v) => !v && setDeleting(null)}>
         <AlertDialogContent>

@@ -7,7 +7,7 @@ export function PageHeader({
   children,
   className,
 }: {
-  title: string;
+  title: React.ReactNode;
   description?: string;
   children?: React.ReactNode;
   className?: string;
@@ -15,17 +15,21 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between',
         className,
       )}
     >
-      <div className="min-w-0">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
+      <div className="min-w-0 space-y-1">
+        <h1 className="font-display text-[22px] font-semibold tracking-tight sm:text-2xl">
+          {title}
+        </h1>
         {description ? (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      {children ? <div className="flex shrink-0 items-center gap-2 no-print">{children}</div> : null}
+      {children ? (
+        <div className="flex shrink-0 items-center gap-2 no-print">{children}</div>
+      ) : null}
     </div>
   );
 }

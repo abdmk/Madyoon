@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
   Download,
@@ -9,6 +10,7 @@ import {
   Filter,
   MoreVertical,
   Pencil,
+  Phone,
   Plus,
   Printer,
   Search,
@@ -19,6 +21,7 @@ import {
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
 import { EmptyState } from '@/components/shared/empty-state';
+import { Pagination } from '@/components/shared/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -50,70 +53,60 @@ import {
 } from '@/components/ui/misc';
 import { DebtFormDialog } from './debt-form-dialog';
 import { PaymentDialog } from './payment-dialog';
-import { useAppStore } from '@/store/use-app-store';
+import { DebtDetailDialog } from './debt-detail-dialog';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { dueInfo, formatAmount, formatDate } from '@/lib/format';
-import { sortDebts, summarizeDebts } from '@/lib/stats';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { DEBT_SORTS, DEBT_SORT_LABELS, PAGE_SIZE, debtFiltersActive, debtQueryString } from '@/lib/params';
+import { useDebouncedSearch, useListQuery } from '@/lib/use-list-query';
 import { cn } from '@/lib/utils';
-import type { Debt, DebtCategory, DebtStatus, Priority } from '@/lib/types';
-import type { DebtSort } from '@/store/use-app-store';
+import type { Debt, DebtCategory, DebtListItem, DebtStatus, Priority } from '@/lib/types';
+import type { DebtQuery, DebtSort } from '@/lib/params';
+import type { DebtsPage } from '@/lib/types';
 
-const SORT_LABELS: Record<DebtSort, string> = {
-  due_asc: 'الأقرب استحقاقاً',
-  due_desc: 'الأبعد استحقاقاً',
-  amount_desc: 'الأكبر مبلغاً',
-  amount_asc: 'الأصغر مبلغاً',
-  priority: 'الأعلى أولوية',
-  created_desc: 'الأحدث إضافة',
-};
-
-export function DebtsView() {
-  const debts = useAppStore((s) => s.debts);
-  const removeDebt = useAppStore((s) => s.removeDebt);
-  const profile = useAppStore((s) => s.profile);
-  const filters = useAppStore((s) => s.debtFilters);
-  const setFilters = useAppStore((s) => s.setDebtFilters);
-  const resetFilters = useAppStore((s) => s.resetDebtFilters);
+export function DebtsView({
+  page,
+  query,
+  currency,
+}: {
+  page: DebtsPage;
+  query: DebtQuery;
+  currency: string;
+}) {
+  const router = useRouter();
+  const { update, setPage, pending } = useListQuery(query, debtQueryString);
+  const [search, setSearch] = useDebouncedSearch(query.search, (v) => update({ search: v }));
 
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Debt | null>(null);
-  const [paying, setPaying] = React.useState<Debt | null>(null);
-  const [deleting, setDeleting] = React.useState<Debt | null>(null);
+  const [editLoading, setEditLoading] = React.useState(false);
+  const [paying, setPaying] = React.useState<DebtListItem | null>(null);
+  const [deleting, setDeleting] = React.useState<DebtListItem | null>(null);
+  const [openDetailId, setOpenDetailId] = React.useState<string | null>(null);
   const [showFilters, setShowFilters] = React.useState(false);
 
-  const currency = profile?.currency ?? 'IQD';
-
-  const filtered = React.useMemo(() => {
-    const q = filters.search.trim().toLowerCase();
-    const rows = debts.filter((d) => {
-      if (filters.category !== 'all' && d.category !== filters.category) return false;
-      if (filters.status !== 'all' && d.status !== filters.status) return false;
-      if (filters.priority !== 'all' && d.priority !== filters.priority) return false;
-      if (q) {
-        const haystack = `${d.creditor_name} ${d.notes ?? ''} ${d.custom_category ?? ''}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-      return true;
-    });
-    return sortDebts(rows, filters.sort);
-  }, [debts, filters]);
-
-  const summary = React.useMemo(() => summarizeDebts(filtered), [filtered]);
-  const activeFilterCount =
-    (filters.category !== 'all' ? 1 : 0) +
-    (filters.status !== 'all' ? 1 : 0) +
-    (filters.priority !== 'all' ? 1 : 0);
+  const { rows, total, summary } = page;
+  const activeFilterCount = debtFiltersActive(query);
 
   function openCreate() {
     setEditing(null);
     setFormOpen(true);
   }
 
-  function openEdit(debt: Debt) {
-    setEditing(debt);
+  async function openEdit(debt: DebtListItem) {
+    // The list row deliberately skips `notes` — fetch just that one column so
+    // the edit form doesn't silently drop existing notes on save.
+    setEditLoading(true);
     setFormOpen(true);
+    setEditing({ ...debt, user_id: '', notes: null, created_at: '', updated_at: '' } as Debt);
+
+    const supabase = getSupabaseBrowserClient();
+    const { data } = await supabase.from('debts').select('notes').eq('id', debt.id).maybeSingle();
+    setEditLoading(false);
+    setEditing((prev) =>
+      prev && prev.id === debt.id ? { ...prev, notes: (data?.notes as string | null) ?? null } : prev,
+    );
   }
 
   async function confirmDelete() {
@@ -129,7 +122,6 @@ export function DebtsView() {
       return;
     }
 
-    removeDebt(target.id);
     void supabase.rpc('write_log', {
       p_action: 'debt.delete',
       p_entity: 'debts',
@@ -137,11 +129,13 @@ export function DebtsView() {
       p_details: { creditor: target.creditor_name },
     });
     toast.success('تم حذف الدين');
+    router.refresh();
   }
 
   function exportCsv() {
-    downloadCsv(timestampedName('madyoon-debts'), filtered, [
+    downloadCsv(timestampedName('madyoon-debts'), rows, [
       { header: 'الدائن', value: (d) => d.creditor_name },
+      { header: 'الهاتف', value: (d) => d.phone ?? '' },
       { header: 'التصنيف', value: (d) => DEBT_CATEGORIES[d.category].label },
       { header: 'المبلغ', value: (d) => d.amount },
       { header: 'المسدد', value: (d) => d.paid_amount },
@@ -150,9 +144,12 @@ export function DebtsView() {
       { header: 'الاستحقاق', value: (d) => d.due_date ?? '' },
       { header: 'الأولوية', value: (d) => PRIORITIES[d.priority].label },
       { header: 'الحالة', value: (d) => DEBT_STATUS[d.status].label },
-      { header: 'ملاحظات', value: (d) => d.notes ?? '' },
     ]);
-    toast.success('تم تصدير الملف');
+    toast.success('تم تصدير الصفحة الحالية');
+  }
+
+  function resetFilters() {
+    update({ search: '', category: 'all', status: 'all', priority: 'all' });
   }
 
   return (
@@ -167,7 +164,7 @@ export function DebtsView() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={exportCsv}>
               <FileText />
-              تصدير CSV
+              تصدير الصفحة الحالية CSV
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => printCurrentView()}>
               <Printer />
@@ -182,7 +179,7 @@ export function DebtsView() {
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
         <StatCard label="الإجمالي" value={formatAmount(summary.total, currency)} tone="primary" />
         <StatCard label="المتبقي" value={formatAmount(summary.remaining, currency)} tone="warning" />
         <StatCard label="المسدد" value={formatAmount(summary.paid, currency)} tone="success" />
@@ -201,25 +198,22 @@ export function DebtsView() {
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                value={filters.search}
-                onChange={(e) => setFilters({ search: e.target.value })}
-                placeholder="ابحث باسم الدائن أو الملاحظات…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="ابحث باسم الدائن أو الهاتف…"
                 className="pe-9"
                 aria-label="بحث في الديون"
               />
             </div>
 
-            <Select
-              value={filters.sort}
-              onValueChange={(v) => setFilters({ sort: v as DebtSort })}
-            >
+            <Select value={query.sort} onValueChange={(v) => update({ sort: v as DebtSort })}>
               <SelectTrigger className="sm:w-52">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(SORT_LABELS) as DebtSort[]).map((key) => (
+                {DEBT_SORTS.map((key) => (
                   <SelectItem key={key} value={key}>
-                    {SORT_LABELS[key]}
+                    {DEBT_SORT_LABELS[key]}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -241,10 +235,10 @@ export function DebtsView() {
           </div>
 
           {showFilters ? (
-            <div className="grid gap-2 border-t pt-3 sm:grid-cols-3">
+            <div className="grid animate-fade-up gap-2 border-t pt-3 sm:grid-cols-3">
               <Select
-                value={filters.category}
-                onValueChange={(v) => setFilters({ category: v as DebtCategory | 'all' })}
+                value={query.category}
+                onValueChange={(v) => update({ category: v as DebtCategory | 'all' })}
               >
                 <SelectTrigger aria-label="التصنيف">
                   <SelectValue placeholder="التصنيف" />
@@ -260,8 +254,8 @@ export function DebtsView() {
               </Select>
 
               <Select
-                value={filters.status}
-                onValueChange={(v) => setFilters({ status: v as DebtStatus | 'all' })}
+                value={query.status}
+                onValueChange={(v) => update({ status: v as DebtStatus | 'all' })}
               >
                 <SelectTrigger aria-label="الحالة">
                   <SelectValue placeholder="الحالة" />
@@ -277,8 +271,8 @@ export function DebtsView() {
               </Select>
 
               <Select
-                value={filters.priority}
-                onValueChange={(v) => setFilters({ priority: v as Priority | 'all' })}
+                value={query.priority}
+                onValueChange={(v) => update({ priority: v as Priority | 'all' })}
               >
                 <SelectTrigger aria-label="الأولوية">
                   <SelectValue placeholder="الأولوية" />
@@ -293,7 +287,7 @@ export function DebtsView() {
                 </SelectContent>
               </Select>
 
-              {activeFilterCount || filters.search ? (
+              {activeFilterCount || query.search ? (
                 <Button variant="ghost" size="sm" onClick={resetFilters} className="sm:col-span-3">
                   <X className="size-4" />
                   مسح الفلاتر
@@ -305,17 +299,17 @@ export function DebtsView() {
       </Card>
 
       {/* Results ---------------------------------------------------------- */}
-      {filtered.length === 0 ? (
+      {rows.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          title={debts.length === 0 ? 'لا توجد ديون بعد' : 'لا نتائج مطابقة'}
+          title={total === 0 && !query.search && !activeFilterCount ? 'لا توجد ديون بعد' : 'لا نتائج مطابقة'}
           description={
-            debts.length === 0
+            total === 0 && !query.search && !activeFilterCount
               ? 'ابدأ بإضافة أول دين لتتبّع مبلغه وموعد استحقاقه.'
               : 'جرّب تعديل الفلاتر أو كلمة البحث.'
           }
           action={
-            debts.length === 0 ? (
+            total === 0 && !query.search && !activeFilterCount ? (
               <Button onClick={openCreate}>
                 <Plus className="size-4" />
                 إضافة دين
@@ -328,13 +322,14 @@ export function DebtsView() {
           }
         />
       ) : (
-        <>
+        <div className={cn('space-y-4 transition-opacity duration-fast', pending && 'opacity-60')}>
           {/* Cards on phones */}
-          <div className="grid gap-3 sm:hidden">
-            {filtered.map((debt) => (
+          <div className="grid gap-3 stagger sm:hidden">
+            {rows.map((debt) => (
               <DebtCard
                 key={debt.id}
                 debt={debt}
+                onOpen={() => setOpenDetailId(debt.id)}
                 onEdit={() => openEdit(debt)}
                 onPay={() => setPaying(debt)}
                 onDelete={() => setDeleting(debt)}
@@ -360,7 +355,7 @@ export function DebtsView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filtered.map((debt) => {
+                  {rows.map((debt) => {
                     const due = dueInfo(debt);
                     const cat = DEBT_CATEGORIES[debt.category];
                     const pct =
@@ -369,18 +364,30 @@ export function DebtsView() {
                         : 0;
 
                     return (
-                      <tr key={debt.id} className="transition-colors hover:bg-muted/30">
+                      <tr
+                        key={debt.id}
+                        onClick={() => setOpenDetailId(debt.id)}
+                        className="cursor-pointer transition-colors duration-fast hover:bg-muted/30"
+                      >
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span aria-hidden>{cat.icon}</span>
                             <div className="min-w-0">
                               <p className="truncate font-medium">{debt.creditor_name}</p>
-                              <Badge
-                                variant="outline"
-                                className={cn('mt-0.5', PRIORITIES[debt.priority].className)}
-                              >
-                                {PRIORITIES[debt.priority].label}
-                              </Badge>
+                              <div className="mt-0.5 flex items-center gap-1.5">
+                                <Badge
+                                  variant="outline"
+                                  className={PRIORITIES[debt.priority].className}
+                                >
+                                  {PRIORITIES[debt.priority].label}
+                                </Badge>
+                                {debt.phone ? (
+                                  <span className="flex items-center gap-1 text-xs text-muted-foreground tabular">
+                                    <Phone className="size-3" />
+                                    {debt.phone}
+                                  </span>
+                                ) : null}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -409,7 +416,7 @@ export function DebtsView() {
                             {DEBT_STATUS[debt.status].label}
                           </Badge>
                         </td>
-                        <td className="p-3 no-print">
+                        <td className="p-3 no-print" onClick={(e) => e.stopPropagation()}>
                           <RowActions
                             debt={debt}
                             onEdit={() => openEdit(debt)}
@@ -424,11 +431,34 @@ export function DebtsView() {
               </table>
             </div>
           </Card>
-        </>
+
+          <Pagination
+            page={query.page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+            pending={pending}
+          />
+        </div>
       )}
 
-      <DebtFormDialog open={formOpen} onOpenChange={setFormOpen} debt={editing} />
-      <PaymentDialog debt={paying} open={!!paying} onOpenChange={(v) => !v && setPaying(null)} />
+      <DebtFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        debt={editing}
+        loading={editLoading}
+      />
+      <PaymentDialog
+        debt={paying as Debt | null}
+        open={!!paying}
+        onOpenChange={(v) => !v && setPaying(null)}
+        onPaid={() => router.refresh()}
+      />
+      <DebtDetailDialog
+        debtId={openDetailId}
+        open={!!openDetailId}
+        onOpenChange={(v) => !v && setOpenDetailId(null)}
+      />
 
       <AlertDialog open={!!deleting} onOpenChange={(v) => !v && setDeleting(null)}>
         <AlertDialogContent>
@@ -454,7 +484,7 @@ function RowActions({
   onPay,
   onDelete,
 }: {
-  debt: Debt;
+  debt: DebtListItem;
   onEdit: () => void;
   onPay: () => void;
   onDelete: () => void;
@@ -489,11 +519,13 @@ function RowActions({
 
 function DebtCard({
   debt,
+  onOpen,
   onEdit,
   onPay,
   onDelete,
 }: {
-  debt: Debt;
+  debt: DebtListItem;
+  onOpen: () => void;
   onEdit: () => void;
   onPay: () => void;
   onDelete: () => void;
@@ -504,7 +536,7 @@ function DebtCard({
     Number(debt.amount) > 0 ? (Number(debt.paid_amount) / Number(debt.amount)) * 100 : 0;
 
   return (
-    <Card className="p-4">
+    <Card className="p-4" onClick={onOpen} role="button" tabIndex={0}>
       <div className="flex items-start gap-3">
         <span
           className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"
@@ -517,7 +549,9 @@ function DebtCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <p className="truncate font-medium">{debt.creditor_name}</p>
-            <RowActions debt={debt} onEdit={onEdit} onPay={onPay} onDelete={onDelete} />
+            <div onClick={(e) => e.stopPropagation()}>
+              <RowActions debt={debt} onEdit={onEdit} onPay={onPay} onDelete={onDelete} />
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">{debt.custom_category || cat.label}</p>
 
@@ -550,7 +584,15 @@ function DebtCard({
           </div>
 
           {debt.status !== 'paid' ? (
-            <Button size="sm" variant="outline" className="mt-3 w-full" onClick={onPay}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-3 w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPay();
+              }}
+            >
               <CheckCircle2 className="size-4" />
               تسجيل دفعة
             </Button>

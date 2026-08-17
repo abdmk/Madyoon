@@ -13,9 +13,7 @@ import {
 import { LineChart as LineIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/shared/empty-state';
-import { monthlyExpenses } from '@/lib/stats';
 import { formatAmount, formatNumber } from '@/lib/format';
-import type { Expense } from '@/lib/types';
 
 const MONTH_LABELS = [
   'يناير',
@@ -37,16 +35,22 @@ function monthLabel(key: string) {
   return MONTH_LABELS[month - 1] ?? key;
 }
 
+export interface TrendPoint {
+  month: string;
+  total: number;
+}
+
+/** Six monthly expense buckets, already zero-filled and summed in Postgres. */
 export function ExpensesTrendChart({
-  expenses,
+  trend,
   currency,
 }: {
-  expenses: Expense[];
+  trend: TrendPoint[];
   currency: string;
 }) {
   const data = React.useMemo(
-    () => monthlyExpenses(expenses, 6).map((d) => ({ ...d, label: monthLabel(d.month) })),
-    [expenses],
+    () => trend.map((d) => ({ ...d, label: monthLabel(d.month) })),
+    [trend],
   );
 
   const hasData = data.some((d) => d.total > 0);
@@ -111,6 +115,9 @@ export function ExpensesTrendChart({
                   stroke="hsl(258 90% 66%)"
                   strokeWidth={2}
                   fill="url(#expenseFill)"
+                  isAnimationActive
+                  animationDuration={400}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>

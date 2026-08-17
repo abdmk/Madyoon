@@ -21,11 +21,16 @@ export function MobileNav() {
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-medium transition-colors',
+                  'flex flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-medium transition-colors duration-fast',
                   active ? 'text-primary' : 'text-muted-foreground',
                 )}
               >
-                <Icon className={cn('size-5 transition-transform', active && 'scale-110')} />
+                <Icon
+                  className={cn(
+                    'size-5 transition-transform duration-fast ease-out',
+                    active && 'scale-110',
+                  )}
+                />
                 <span className="truncate">{item.label}</span>
               </Link>
             </li>

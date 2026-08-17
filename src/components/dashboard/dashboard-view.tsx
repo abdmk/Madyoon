@@ -1,7 +1,5 @@
-'use client';
-
-import * as React from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -16,38 +14,44 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/misc';
-import { useAppStore } from '@/store/use-app-store';
-import { summarizeDebts, sumExpenses, sortDebts } from '@/lib/stats';
+import { Progress, Skeleton } from '@/components/ui/misc';
 import { dueInfo, formatAmount, formatDate, formatPercent } from '@/lib/format';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { DebtsBreakdownChart } from './breakdown-chart';
-import { ExpensesTrendChart } from './trend-chart';
+import type { DashboardData } from '@/lib/types';
 
-export function DashboardView({ name }: { name: string }) {
-  const debts = useAppStore((s) => s.debts);
-  const expenses = useAppStore((s) => s.expenses);
-  const profile = useAppStore((s) => s.profile);
-  const currency = profile?.currency ?? 'IQD';
+// Recharts is the single heaviest dependency on this page. Splitting it into
+// its own chunk keeps it out of the dashboard's initial JS — the KPI cards,
+// which is what a visitor actually sees first, render without waiting on it.
+const ChartSkeleton = () => <Skeleton className="h-48 w-full rounded-xl" />;
 
-  const summary = React.useMemo(() => summarizeDebts(debts), [debts]);
+const DebtsBreakdownChart = dynamic(
+  () => import('./breakdown-chart').then((m) => m.DebtsBreakdownChart),
+  { ssr: false, loading: ChartSkeleton },
+);
 
-  // This month's spend, for the "المصاريف" tile.
-  const monthExpenses = React.useMemo(() => {
-    const prefix = new Date().toISOString().slice(0, 7);
-    return sumExpenses(expenses.filter((e) => e.date.startsWith(prefix)));
-  }, [expenses]);
+const ExpensesTrendChart = dynamic(
+  () => import('./trend-chart').then((m) => m.ExpensesTrendChart),
+  { ssr: false, loading: ChartSkeleton },
+);
 
-  const urgent = React.useMemo(
-    () =>
-      sortDebts(
-        debts.filter((d) => d.status !== 'paid'),
-        'priority',
-      ).slice(0, 6),
-    [debts],
-  );
-
+/**
+ * Every number here comes from `dashboard_summary` (see
+ * supabase/migrations/0005_query_performance.sql) — one Postgres round trip
+ * that already did the grouping, filtering and top-6 selection. Nothing on
+ * this page loads a full table to reduce it in the browser.
+ */
+export function DashboardView({
+  name,
+  currency,
+  data,
+}: {
+  name: string;
+  currency: string;
+  data: DashboardData;
+}) {
+  const { debts, expenses, breakdown, trend, urgent } = data;
+  const progress = debts.total > 0 ? (debts.paid / debts.total) * 100 : 0;
   const firstName = name.split(' ')[0] || '';
 
   return (
@@ -64,47 +68,49 @@ export function DashboardView({ name }: { name: string }) {
         </Button>
       </PageHeader>
 
-      {/* Stats ------------------------------------------------------------ */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/* The one number that matters most, front and centre. */}
+      <div className="grid grid-cols-2 gap-3 stagger sm:gap-4 lg:grid-cols-4">
+        <StatCard
+          label="المتبقي عليك"
+          value={formatAmount(debts.remaining, currency)}
+          hint={`${debts.active} دين قيد السداد`}
+          icon={TrendingDown}
+          tone="warning"
+          emphasis
+          className="col-span-2 lg:col-span-1"
+        />
         <StatCard
           label="إجمالي الديون"
-          value={formatAmount(summary.total, currency)}
-          hint={`${summary.count} دين`}
+          value={formatAmount(debts.total, currency)}
+          hint={`${debts.count} دين`}
           icon={Wallet}
           tone="primary"
         />
         <StatCard
-          label="المتبقي"
-          value={formatAmount(summary.remaining, currency)}
-          hint={`${summary.active} قيد السداد`}
-          icon={TrendingDown}
-          tone="warning"
-        />
-        <StatCard
           label="المسدد"
-          value={formatAmount(summary.paid, currency)}
-          hint={`${summary.settled} دين مكتمل`}
+          value={formatAmount(debts.paid, currency)}
+          hint={`${debts.settled} دين مكتمل`}
           icon={CheckCircle2}
           tone="success"
         />
         <StatCard
           label="مصاريف الشهر"
-          value={formatAmount(monthExpenses, currency)}
-          hint={`${expenses.length} عملية مسجلة`}
+          value={formatAmount(expenses.monthTotal, currency)}
+          hint={`${expenses.count} عملية مسجلة`}
           icon={Receipt}
           tone="accent"
         />
       </div>
 
       {/* Overdue banner --------------------------------------------------- */}
-      {summary.overdue > 0 ? (
-        <Card className="border-destructive/30 bg-destructive/5">
+      {debts.overdue > 0 ? (
+        <Card className="animate-fade-up border-destructive/30 bg-destructive/5">
           <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
               <div>
                 <p className="font-medium text-destructive">
-                  لديك {summary.overdue} دين متأخر عن موعده
+                  لديك {debts.overdue} دين متأخر عن موعده
                 </p>
                 <p className="text-sm text-muted-foreground">
                   ابدأ بالأقدم — تأخير السداد عادةً يزيد الكلفة.
@@ -112,7 +118,7 @@ export function DashboardView({ name }: { name: string }) {
               </div>
             </div>
             <Button variant="destructive" size="sm" asChild className="shrink-0">
-              <Link href="/debts">عرض الديون المتأخرة</Link>
+              <Link href="/debts?status=pending&sort=due_asc">عرض الديون المتأخرة</Link>
             </Button>
           </CardContent>
         </Card>
@@ -127,23 +133,23 @@ export function DashboardView({ name }: { name: string }) {
               <CardDescription>من إجمالي ما عليك</CardDescription>
             </div>
             <span className="font-display text-2xl font-semibold tabular text-primary">
-              {formatPercent(summary.progress)}
+              {formatPercent(progress)}
             </span>
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Progress value={summary.progress} className="h-3" />
+          <Progress value={progress} className="h-3" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>المسدد {formatAmount(summary.paid, currency)}</span>
-            <span>المتبقي {formatAmount(summary.remaining, currency)}</span>
+            <span>المسدد {formatAmount(debts.paid, currency)}</span>
+            <span>المتبقي {formatAmount(debts.remaining, currency)}</span>
           </div>
         </CardContent>
       </Card>
 
       {/* Charts ----------------------------------------------------------- */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <DebtsBreakdownChart debts={debts} currency={currency} />
-        <ExpensesTrendChart expenses={expenses} currency={currency} />
+        <DebtsBreakdownChart breakdown={breakdown} currency={currency} />
+        <ExpensesTrendChart trend={trend} currency={currency} />
       </div>
 
       {/* Priority list ---------------------------------------------------- */}
@@ -176,7 +182,7 @@ export function DashboardView({ name }: { name: string }) {
               className="border-0 py-8"
             />
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y stagger">
               {urgent.map((debt) => {
                 const due = dueInfo(debt);
                 const cat = DEBT_CATEGORIES[debt.category];

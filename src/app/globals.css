@@ -2,9 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   Design tokens
+   One scale for colour, radius, elevation and motion. Components reference
+   these only — no page defines its own shadow, radius or timing.
+   ========================================================================== */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* Surfaces: a barely-tinted page behind pure-white cards, so a card reads
+       as raised without needing a heavy shadow. */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -13,71 +21,82 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary — #3b82f6 */
-    --primary: 217 91% 60%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
+    --secondary: 220 14% 96%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 45%;
 
-    /* Accent — #8b5cf6 */
-    --accent: 258 90% 66%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 26 83% 14%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
-
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    /* #0f172a / #1e293b */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 217 33% 22%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 22%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 258 90% 66%;
+    --accent: 258 84% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 69% 45%;
+    --success: 158 64% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 26 83% 14%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 217 33% 24%;
-    --input: 217 33% 24%;
-    --ring: 217 91% 60%;
+    --border: 220 13% 91%;
+    --input: 220 13% 88%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    /* Elevation — low-contrast, tightly stacked. */
+    --shadow-xs: 0 1px 2px 0 hsl(222 47% 11% / 0.04);
+    --shadow-sm: 0 1px 3px 0 hsl(222 47% 11% / 0.06), 0 1px 2px -1px hsl(222 47% 11% / 0.04);
+    --shadow-md: 0 4px 12px -2px hsl(222 47% 11% / 0.07), 0 2px 4px -2px hsl(222 47% 11% / 0.04);
+    --shadow-lg: 0 12px 32px -8px hsl(222 47% 11% / 0.14), 0 4px 8px -4px hsl(222 47% 11% / 0.06);
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 20% 96%;
+
+    /* Cards sit *above* the page in dark mode too — lighter, never darker. */
+    --card: 220 33% 11%;
+    --card-foreground: 210 20% 96%;
+
+    --popover: 220 33% 12%;
+    --popover-foreground: 210 20% 96%;
+
+    --primary: 217 91% 62%;
+    --primary-foreground: 222 47% 8%;
+
+    --secondary: 218 24% 17%;
+    --secondary-foreground: 210 20% 96%;
+
+    --muted: 218 24% 17%;
+    /* Light enough to stay readable on cards — WCAG AA against --card. */
+    --muted-foreground: 215 18% 68%;
+
+    --accent: 258 90% 70%;
+    --accent-foreground: 222 47% 8%;
+
+    --destructive: 0 79% 63%;
+    --destructive-foreground: 222 47% 8%;
+
+    --success: 158 64% 52%;
+    --success-foreground: 222 47% 8%;
+
+    --warning: 38 92% 58%;
+    --warning-foreground: 222 47% 8%;
+
+    /* Visible borders are what keep a dark UI from turning into a blur. */
+    --border: 217 24% 22%;
+    --input: 217 24% 26%;
+    --ring: 217 91% 62%;
+
+    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.6);
   }
 }
 
@@ -88,11 +107,13 @@
 
   html {
     -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
   }
 
   /* Arabic reads better with a touch more line height. */
@@ -103,10 +124,28 @@
     line-height: 1.75;
   }
 
+  /* Headings are tighter than body copy — the contrast is the hierarchy. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+    line-height: 1.25;
+  }
+
   /* Latin digits stay upright and evenly spaced inside RTL text. */
   .tabular {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
+  }
+
+  /* One focus treatment everywhere, including keyboard-only navigation. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    @apply bg-primary/20;
   }
 
   ::-webkit-scrollbar {
@@ -130,6 +169,65 @@
   }
   .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Staggered entrances: set --delay on the child, not a wrapper per item. */
+  .stagger > * {
+    animation: fade-up 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .stagger > *:nth-child(6) { animation-delay: 200ms; }
+
+  /* Skeletons shimmer instead of pulsing — closer to "content is arriving". */
+  .shimmer {
+    @apply relative overflow-hidden bg-muted;
+  }
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.05),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Motion is decoration. Anyone who asked the OS to stop it gets no movement,
+   only the final state. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

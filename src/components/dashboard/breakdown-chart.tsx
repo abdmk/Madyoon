@@ -7,25 +7,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { EmptyState } from '@/components/shared/empty-state';
 import { DEBT_CATEGORIES } from '@/lib/constants';
 import { formatAmount, formatPercent } from '@/lib/format';
-import type { Debt } from '@/lib/types';
 
-export function DebtsBreakdownChart({ debts, currency }: { debts: Debt[]; currency: string }) {
-  const data = React.useMemo(() => {
-    const map = new Map<string, number>();
-    for (const d of debts) {
-      if (d.status === 'paid') continue;
-      map.set(d.category, (map.get(d.category) ?? 0) + Number(d.remaining_amount));
-    }
-    return [...map.entries()]
-      .filter(([, value]) => value > 0)
-      .map(([key, value]) => ({
-        key,
-        name: DEBT_CATEGORIES[key as keyof typeof DEBT_CATEGORIES]?.label ?? key,
-        color: DEBT_CATEGORIES[key as keyof typeof DEBT_CATEGORIES]?.color ?? 'hsl(215 16% 47%)',
-        value,
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [debts]);
+export interface BreakdownSlice {
+  key: string;
+  value: number;
+}
+
+/** Remaining-amount-by-category donut. The grouping happens in Postgres. */
+export function DebtsBreakdownChart({
+  breakdown,
+  currency,
+}: {
+  breakdown: BreakdownSlice[];
+  currency: string;
+}) {
+  const data = React.useMemo(
+    () =>
+      breakdown.map((b) => ({
+        key: b.key,
+        name: DEBT_CATEGORIES[b.key as keyof typeof DEBT_CATEGORIES]?.label ?? b.key,
+        color: DEBT_CATEGORIES[b.key as keyof typeof DEBT_CATEGORIES]?.color ?? 'hsl(215 16% 47%)',
+        value: b.value,
+      })),
+    [breakdown],
+  );
 
   const total = data.reduce((acc, d) => acc + d.value, 0);
 
@@ -57,6 +62,9 @@ export function DebtsBreakdownChart({ debts, currency }: { debts: Debt[]; curren
                     outerRadius="92%"
                     paddingAngle={2}
                     strokeWidth={0}
+                    isAnimationActive
+                    animationDuration={400}
+                    animationEasing="ease-out"
                   >
                     {data.map((entry) => (
                       <Cell key={entry.key} fill={entry.color} />

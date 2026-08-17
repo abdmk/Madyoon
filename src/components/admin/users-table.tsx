@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useAppStore } from '@/store/use-app-store';
+import { useSession } from '@/components/session-provider';
 import { formatAmount, formatDate, initials } from '@/lib/format';
 import { downloadCsv, timestampedName } from '@/lib/export';
 import type { AdminUserRow, Role } from '@/lib/types';
@@ -26,14 +26,14 @@ import type { AdminUserRow, Role } from '@/lib/types';
 type SortKey = 'created' | 'debts' | 'remaining' | 'name';
 
 export function UsersTable({ initialUsers }: { initialUsers: AdminUserRow[] }) {
-  const currentProfile = useAppStore((s) => s.profile);
+  const { profile: currentProfile } = useSession();
   const [users, setUsers] = React.useState(initialUsers);
   const [search, setSearch] = React.useState('');
   const [roleFilter, setRoleFilter] = React.useState<Role | 'all'>('all');
   const [sort, setSort] = React.useState<SortKey>('created');
   const [updating, setUpdating] = React.useState<string | null>(null);
 
-  const currency = currentProfile?.currency ?? 'IQD';
+  const currency = currentProfile.currency;
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -59,7 +59,7 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminUserRow[] }) {
   }, [users, search, roleFilter, sort]);
 
   async function changeRole(user: AdminUserRow, role: Role) {
-    if (user.id === currentProfile?.id) {
+    if (user.id === currentProfile.id) {
       toast.error('لا يمكنك تغيير صلاحية حسابك الخاص');
       return;
     }
@@ -205,7 +205,7 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminUserRow[] }) {
                       <Select
                         value={user.role}
                         onValueChange={(v) => changeRole(user, v as Role)}
-                        disabled={updating === user.id || user.id === currentProfile?.id}
+                        disabled={updating === user.id || user.id === currentProfile.id}
                       >
                         <SelectTrigger className="h-8 w-32 text-xs">
                           <SelectValue />

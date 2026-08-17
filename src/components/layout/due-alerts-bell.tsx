@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { Bell, CalendarClock, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,27 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAppStore } from '@/store/use-app-store';
 import { dueInfo, formatAmount, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import type { DueAlerts } from '@/lib/types';
 
-/** Debts that are overdue or due within the alert window, most urgent first. */
-export function useDueAlerts() {
-  const debts = useAppStore((s) => s.debts);
-
-  return React.useMemo(
-    () =>
-      debts
-        .map((d) => ({ debt: d, due: dueInfo(d) }))
-        .filter(({ due }) => due.state === 'overdue' || due.state === 'today' || due.state === 'soon')
-        .sort((a, b) => a.due.days - b.due.days),
-    [debts],
-  );
-}
-
-export function DueAlertsBell() {
-  const alerts = useDueAlerts();
-  const count = alerts.length;
+/**
+ * The bell's contents come from the layout's `due_alerts` RPC — a bounded
+ * query (eight rows, one count) rather than every debt the account owns.
+ */
+export function DueAlertsBell({ alerts }: { alerts: DueAlerts }) {
+  const { count, rows } = alerts;
 
   return (
     <DropdownMenu>
@@ -39,7 +27,7 @@ export function DueAlertsBell() {
         <Button variant="ghost" size="icon" className="relative" aria-label={`التنبيهات (${count})`}>
           <Bell className="size-[18px]" />
           {count > 0 ? (
-            <span className="absolute end-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-destructive-foreground tabular">
+            <span className="absolute end-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-destructive-foreground tabular animate-scale-in">
               {count > 9 ? '9+' : count}
             </span>
           ) : null}
@@ -53,43 +41,46 @@ export function DueAlertsBell() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        {count === 0 ? (
+        {rows.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-3 py-8 text-center">
             <CheckCircle2 className="size-8 text-success" />
             <p className="text-sm text-muted-foreground">لا توجد مواعيد قريبة. عمل ممتاز.</p>
           </div>
         ) : (
           <ul className="max-h-80 overflow-y-auto py-1">
-            {alerts.slice(0, 8).map(({ debt, due }) => (
-              <li key={debt.id}>
-                <Link
-                  href="/debts"
-                  className="flex items-start gap-3 rounded-md px-2 py-2 transition-colors hover:bg-secondary"
-                >
-                  <span
-                    className={cn(
-                      'mt-1.5 size-2 shrink-0 rounded-full',
-                      due.state === 'overdue' || due.state === 'today'
-                        ? 'bg-destructive'
-                        : 'bg-warning',
-                    )}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{debt.creditor_name}</span>
-                    <span className="block text-xs text-muted-foreground">
-                      {formatDate(debt.due_date)} · {formatAmount(debt.remaining_amount, debt.currency)}
+            {rows.map((row) => {
+              const due = dueInfo({ due_date: row.due_date, status: row.status });
+              return (
+                <li key={row.id}>
+                  <Link
+                    href="/debts"
+                    className="flex items-start gap-3 rounded-md px-2 py-2 transition-colors duration-fast hover:bg-secondary"
+                  >
+                    <span
+                      className={cn(
+                        'mt-1.5 size-2 shrink-0 rounded-full',
+                        due.state === 'overdue' || due.state === 'today'
+                          ? 'bg-destructive'
+                          : 'bg-warning',
+                      )}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{row.creditor_name}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {formatDate(row.due_date)} · {formatAmount(row.remaining_amount, row.currency)}
+                      </span>
                     </span>
-                  </span>
-                  <span className={cn('shrink-0 text-xs font-medium', due.className)}>
-                    {due.label}
-                  </span>
-                </Link>
-              </li>
-            ))}
+                    <span className={cn('shrink-0 text-xs font-medium', due.className)}>
+                      {due.label}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
 
-        {count > 8 ? (
+        {count > rows.length ? (
           <>
             <DropdownMenuSeparator />
             <Link

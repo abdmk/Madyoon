@@ -2,36 +2,54 @@ import * as React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Every empty region in the app uses this: an icon, a sentence that says what
+ * would normally be here, and — when there is one — the action that fills it.
+ */
 export function EmptyState({
   icon: Icon,
   title,
   description,
   action,
+  secondaryAction,
   className,
 }: {
   icon: LucideIcon;
   title: string;
   description?: string;
   action?: React.ReactNode;
+  secondaryAction?: React.ReactNode;
   className?: string;
 }) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-14 text-center',
+        'flex animate-fade-in flex-col items-center justify-center gap-4 rounded-xl border border-dashed bg-card/40 px-6 py-16 text-center',
         className,
       )}
     >
-      <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+      <span
+        className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+        aria-hidden
+      >
         <Icon className="size-6" />
       </span>
-      <div>
+
+      <div className="space-y-1.5">
         <p className="font-display text-base font-semibold">{title}</p>
         {description ? (
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
+          <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         ) : null}
       </div>
-      {action ? <div className="mt-1">{action}</div> : null}
+
+      {action || secondaryAction ? (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {action}
+          {secondaryAction}
+        </div>
+      ) : null}
     </div>
   );
 }

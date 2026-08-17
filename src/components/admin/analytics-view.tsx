@@ -17,7 +17,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { StatCard } from '@/components/shared/stat-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAppStore } from '@/store/use-app-store';
+import { useSession } from '@/components/session-provider';
 import { formatAmount, formatNumber } from '@/lib/format';
 import type { AnalyticsPoint } from '@/lib/types';
 
@@ -42,8 +42,8 @@ function label(month: string) {
 }
 
 export function AnalyticsView({ points }: { points: AnalyticsPoint[] }) {
-  const profile = useAppStore((s) => s.profile);
-  const currency = profile?.currency ?? 'IQD';
+  const { profile } = useSession();
+  const currency = profile.currency;
 
   const data = React.useMemo(
     () =>

@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage, Separator, Switch } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useAppStore } from '@/store/use-app-store';
+import { useSession } from '@/components/session-provider';
 import { CURRENCIES } from '@/lib/constants';
 import { formatDate, generateInviteCode, initials } from '@/lib/format';
 import type { Profile, SharedAccountView, SharePermission } from '@/lib/types';
@@ -43,8 +43,7 @@ export function SettingsView({
   initialShares: SharedAccountView[];
   initialSharedWithMe: SharedAccountView[];
 }) {
-  const profile = useAppStore((s) => s.profile);
-  const setProfile = useAppStore((s) => s.setProfile);
+  const { profile, setProfile } = useSession();
 
   const [shares, setShares] = React.useState(initialShares);
   const [sharedWithMe, setSharedWithMe] = React.useState(initialSharedWithMe);
@@ -87,24 +86,21 @@ function ProfileCard({
   profile,
   setProfile,
 }: {
-  profile: Profile | null;
-  setProfile: (p: Profile | null) => void;
+  profile: Profile;
+  setProfile: (p: Profile) => void;
 }) {
-  const [name, setName] = React.useState(profile?.name ?? '');
-  const [currency, setCurrency] = React.useState(profile?.currency ?? 'IQD');
+  const [name, setName] = React.useState(profile.name);
+  const [currency, setCurrency] = React.useState(profile.currency);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    if (profile) {
-      setName(profile.name);
-      setCurrency(profile.currency);
-    }
+    setName(profile.name);
+    setCurrency(profile.currency);
   }, [profile]);
 
-  const dirty = !!profile && (name !== profile.name || currency !== profile.currency);
+  const dirty = name !== profile.name || currency !== profile.currency;
 
   async function save() {
-    if (!profile) return;
     setSaving(true);
 
     const supabase = getSupabaseBrowserClient();
@@ -126,8 +122,6 @@ function ProfileCard({
     void supabase.rpc('write_log', { p_action: 'profile.update', p_entity: 'profiles' });
     toast.success('تم حفظ التغييرات');
   }
-
-  if (!profile) return null;
 
   return (
     <Card>
@@ -232,13 +226,12 @@ function SharingCard({
   shares: SharedAccountView[];
   setShares: React.Dispatch<React.SetStateAction<SharedAccountView[]>>;
 }) {
-  const profile = useAppStore((s) => s.profile);
+  const { profile } = useSession();
   const [permission, setPermission] = React.useState<SharePermission>('read');
   const [creating, setCreating] = React.useState(false);
   const [copied, setCopied] = React.useState<string | null>(null);
 
   async function createInvite() {
-    if (!profile) return;
     setCreating(true);
 
     const supabase = getSupabaseBrowserClient();

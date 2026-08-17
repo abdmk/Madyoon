@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { toast } from 'sonner';
+import { Banknote, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,37 +12,60 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useAppStore } from '@/store/use-app-store';
 import { formatAmount } from '@/lib/format';
-import type { Debt } from '@/lib/types';
+import { PAYMENT_METHODS } from '@/lib/constants';
+import { cn } from '@/lib/utils';
+import type { Debt, PaymentMethod } from '@/lib/types';
 
-/** Records a payment against a debt by raising its `paid_amount`. */
+function todayIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate(),
+  ).padStart(2, '0')}`;
+}
+
+const METHOD_ICONS: Record<PaymentMethod, typeof Banknote> = {
+  cash: Banknote,
+  transfer: Landmark,
+};
+
+/** Records a payment against a debt: logs it in `debt_payments`, raises `paid_amount`. */
 export function PaymentDialog({
   debt,
   open,
   onOpenChange,
+  onPaid,
 }: {
   debt: Debt | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** Called with the updated row once the server confirms the payment. */
+  onPaid?: (debt: Debt) => void;
 }) {
-  const upsertDebt = useAppStore((s) => s.upsertDebt);
   const [value, setValue] = React.useState('');
+  const [method, setMethod] = React.useState<PaymentMethod>('cash');
+  const [paidAt, setPaidAt] = React.useState(todayIso());
+  const [note, setNote] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    if (open && debt) setValue(String(debt.remaining_amount));
+    if (open && debt) {
+      setValue(String(debt.remaining_amount));
+      setMethod('cash');
+      setPaidAt(todayIso());
+      setNote('');
+    }
   }, [open, debt]);
 
   if (!debt) return null;
 
   const amount = Number(value || 0);
   const remaining = Number(debt.remaining_amount);
-  const valid = Number.isFinite(amount) && amount > 0 && amount <= remaining;
+  const valid = Number.isFinite(amount) && amount > 0 && amount <= remaining && !!paidAt;
   const after = Math.max(remaining - (valid ? amount : 0), 0);
   const progressAfter =
     Number(debt.amount) > 0 ? ((Number(debt.amount) - after) / Number(debt.amount)) * 100 : 0;
@@ -52,14 +76,14 @@ export function PaymentDialog({
 
     setSaving(true);
     const supabase = getSupabaseBrowserClient();
-    const newPaid = Number(debt.paid_amount) + amount;
 
-    const { data, error } = await supabase
-      .from('debts')
-      .update({ paid_amount: newPaid })
-      .eq('id', debt.id)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('record_payment', {
+      p_debt_id: debt.id,
+      p_amount: amount,
+      p_method: method,
+      p_paid_at: paidAt,
+      p_note: note.trim() || null,
+    });
 
     setSaving(false);
 
@@ -68,17 +92,12 @@ export function PaymentDialog({
       return;
     }
 
-    upsertDebt(data as Debt);
-    void supabase.rpc('write_log', {
-      p_action: 'debt.pay',
-      p_entity: 'debts',
-      p_entity_id: debt.id,
-      p_details: { amount, creditor: debt.creditor_name },
-    });
+    const updated = data as Debt;
+    onPaid?.(updated);
 
     toast.success(
-      (data as Debt).status === 'paid'
-        ? `تم سداد الدين بالكامل 🎉`
+      updated.status === 'paid'
+        ? 'تم سداد الدين بالكامل 🎉'
         : `تم تسجيل دفعة ${formatAmount(amount, debt.currency)}`,
     );
     onOpenChange(false);
@@ -128,6 +147,58 @@ export function PaymentDialog({
                 {ratio === 1 ? 'المتبقي كامل' : `${ratio * 100}%`}
               </Button>
             ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="paid-at">تاريخ الدفعة</Label>
+              <Input
+                id="paid-at"
+                type="date"
+                value={paidAt}
+                onChange={(e) => setPaidAt(e.target.value)}
+                max={todayIso()}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>طريقة الدفع</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.keys(PAYMENT_METHODS) as PaymentMethod[]).map((key) => {
+                  const Icon = METHOD_ICONS[key];
+                  const active = method === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setMethod(key)}
+                      aria-pressed={active}
+                      className={cn(
+                        'flex h-10 items-center justify-center gap-1.5 rounded-lg border text-sm font-medium transition-colors duration-fast',
+                        active
+                          ? 'border-primary/40 bg-primary/10 text-primary'
+                          : 'border-input bg-card text-muted-foreground hover:bg-secondary',
+                      )}
+                    >
+                      <Icon className="size-4" />
+                      {PAYMENT_METHODS[key].label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment-note">ملاحظات (اختياري)</Label>
+            <Textarea
+              id="payment-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="رقم مرجعي، ملاحظة للدفعة…"
+              rows={2}
+            />
           </div>
 
           <div className="rounded-lg border bg-muted/40 p-3">

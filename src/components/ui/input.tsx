@@ -9,10 +9,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       type={type}
       ref={ref}
       className={cn(
-        'flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors',
+        'flex h-10 w-full rounded-lg border border-input bg-card px-3 py-2 text-sm shadow-xs',
+        'transition-[border-color,box-shadow] duration-fast ease-out',
         'placeholder:text-muted-foreground',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 focus-visible:ring-offset-0',
+        'disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-60',
+        // A field in error state says so before the message is read.
+        'aria-[invalid=true]:border-destructive aria-[invalid=true]:focus-visible:ring-destructive/25',
         // Numeric and date fields read left-to-right even inside an RTL page.
         (type === 'number' || type === 'date') && 'text-left tabular [direction:ltr]',
         className,
@@ -30,10 +33,12 @@ const Textarea = React.forwardRef<
   <textarea
     ref={ref}
     className={cn(
-      'flex min-h-20 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors',
+      'flex min-h-20 w-full rounded-lg border border-input bg-card px-3 py-2 text-sm shadow-xs',
+      'transition-[border-color,box-shadow] duration-fast ease-out',
       'placeholder:text-muted-foreground',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
-      'disabled:cursor-not-allowed disabled:opacity-50',
+      'focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 focus-visible:ring-offset-0',
+      'disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-60',
+      'aria-[invalid=true]:border-destructive aria-[invalid=true]:focus-visible:ring-destructive/25',
       className,
     )}
     {...props}

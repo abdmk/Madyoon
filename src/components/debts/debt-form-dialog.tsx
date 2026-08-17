@@ -32,9 +32,9 @@ interface FormState {
   amount: string;
   paid_amount: string;
   currency: string;
+  debt_date: string;
   due_date: string;
   category: DebtCategory;
-  custom_category: string;
   priority: Priority;
   notes: string;
 }
@@ -46,9 +46,9 @@ function toForm(debt: Debt | null, defaultCurrency: string): FormState {
     amount: debt ? String(debt.amount) : '',
     paid_amount: debt ? String(debt.paid_amount) : '0',
     currency: debt?.currency ?? defaultCurrency,
+    debt_date: debt?.debt_date ?? '',
     due_date: debt?.due_date ?? '',
     category: debt?.category ?? 'personal',
-    custom_category: debt?.custom_category ?? '',
     priority: debt?.priority ?? 'medium',
     notes: debt?.notes ?? '',
   };
@@ -123,9 +123,9 @@ export function DebtFormDialog({
       amount: Number(form.amount),
       paid_amount: Number(form.paid_amount || 0),
       currency: form.currency,
+      debt_date: form.debt_date || null,
       due_date: form.due_date || null,
       category: form.category,
-      custom_category: form.custom_category.trim() || null,
       priority: form.priority,
       notes: form.notes.trim() || null,
     };
@@ -296,22 +296,22 @@ export function DebtFormDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
+              <Label htmlFor="debt-date">تاريخ الدين</Label>
+              <Input
+                id="debt-date"
+                type="date"
+                value={form.debt_date}
+                onChange={(e) => set('debt_date', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="due">تاريخ الاستحقاق</Label>
               <Input
                 id="due"
                 type="date"
                 value={form.due_date}
                 onChange={(e) => set('due_date', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="custom">تصنيف مخصص</Label>
-              <Input
-                id="custom"
-                value={form.custom_category}
-                onChange={(e) => set('custom_category', e.target.value)}
-                placeholder="اختياري"
               />
             </div>
           </div>

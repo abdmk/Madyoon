@@ -36,6 +36,7 @@ export interface Debt {
   /** Generated column: max(amount - paid_amount, 0). */
   remaining_amount: number;
   currency: string;
+  debt_date: string | null;
   due_date: string | null;
   category: DebtCategory;
   custom_category: string | null;

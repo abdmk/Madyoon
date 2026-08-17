@@ -405,7 +405,7 @@ export function DebtsView({
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">
-                          {debt.custom_category || cat.label}
+                          {cat.label}
                         </td>
                         <td className="p-3 tabular">{formatAmount(debt.amount, debt.currency)}</td>
                         <td className="p-3">
@@ -578,7 +578,7 @@ function DebtCard({
               <RowActions debt={debt} onEdit={onEdit} onPay={onPay} onDelete={onDelete} />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{debt.custom_category || cat.label}</p>
+          <p className="text-xs text-muted-foreground">{cat.label}</p>
 
           <div className="mt-3 flex items-end justify-between gap-2">
             <div>

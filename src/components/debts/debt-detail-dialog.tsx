@@ -95,7 +95,7 @@ export function DebtDetailDialog({
                     </Badge>
                   </DialogTitle>
                   <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span>{debt.custom_category || cat!.label}</span>
+                    <span>{cat!.label}</span>
                     {debt.phone ? (
                       <span className="flex items-center gap-1 tabular" dir="ltr">
                         <Phone className="size-3" />
@@ -129,17 +129,22 @@ export function DebtDetailDialog({
                 className="h-2"
                 indicatorClassName={debt.status === 'paid' ? 'bg-success' : undefined}
               />
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-between gap-y-1 text-xs text-muted-foreground">
                 <Badge variant="outline" className={DEBT_STATUS[debt.status].className}>
                   {DEBT_STATUS[debt.status].label}
                 </Badge>
-                {debt.due_date ? (
-                  <span className={due?.className}>
-                    الاستحقاق {formatDate(debt.due_date)} ({due?.label})
-                  </span>
-                ) : (
-                  <span>بدون موعد استحقاق</span>
-                )}
+                <div className="flex items-center gap-3">
+                  {debt.debt_date ? (
+                    <span>تاريخ الدين {formatDate(debt.debt_date)}</span>
+                  ) : null}
+                  {debt.due_date ? (
+                    <span className={due?.className}>
+                      الاستحقاق {formatDate(debt.due_date)} ({due?.label})
+                    </span>
+                  ) : (
+                    <span>بدون موعد استحقاق</span>
+                  )}
+                </div>
               </div>
             </div>
 

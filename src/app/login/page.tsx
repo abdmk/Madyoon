@@ -3,6 +3,8 @@ import { LoginCard } from '@/components/auth/login-card';
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
 
 export const metadata: Metadata = { title: 'تسجيل الدخول' };
+// Never cache: the redirect target and error message are per-visitor.
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage({
   searchParams,

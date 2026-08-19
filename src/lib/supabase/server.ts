@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { AUTH_COOKIE_OPTIONS } from './cookie-options';
 import type { Profile } from '@/lib/types';
 
 /** The shape `setAll` receives — annotated because the union hides it. */
@@ -17,6 +18,7 @@ export const createClient = cache(() => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return cookieStore.getAll();

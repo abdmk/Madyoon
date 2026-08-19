@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { PAGE_SIZE, type DebtQuery, type ExpenseQuery } from '@/lib/params';
 import type {
   DashboardData,
+  DebtDetail,
   DebtsPage,
   DueAlerts,
   ExpensesPage,
@@ -91,6 +92,19 @@ export async function getExpensesPage(
 
   if (error || !data) return EMPTY_EXPENSES;
   return data as ExpensesPage;
+}
+
+/**
+ * One debt with everything the list leaves behind: phone, notes, timestamps
+ * and the full payment ledger. Returns null when the id doesn't exist or RLS
+ * hides it, which the route turns into a 404.
+ */
+export async function getDebtDetail(id: string): Promise<DebtDetail | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('debt_detail', { p_id: id });
+
+  if (error || !data) return null;
+  return data as DebtDetail;
 }
 
 export async function getDashboard(ownerId: string): Promise<DashboardData> {

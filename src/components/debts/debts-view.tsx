@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
@@ -55,7 +56,6 @@ import {
 } from '@/components/ui/misc';
 import { DebtFormDialog } from './debt-form-dialog';
 import { PaymentDialog } from './payment-dialog';
-import { DebtDetailDialog } from './debt-detail-dialog';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { dueInfo, formatAmount, formatDate } from '@/lib/format';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
@@ -85,7 +85,6 @@ export function DebtsView({
   const [editLoading, setEditLoading] = React.useState(false);
   const [paying, setPaying] = React.useState<DebtListItem | null>(null);
   const [deleting, setDeleting] = React.useState<DebtListItem | null>(null);
-  const [openDetailId, setOpenDetailId] = React.useState<string | null>(null);
   const [showFilters, setShowFilters] = React.useState(false);
 
   const { rows, total, summary } = page;
@@ -338,7 +337,7 @@ export function DebtsView({
               <DebtCard
                 key={debt.id}
                 debt={debt}
-                onOpen={() => setOpenDetailId(debt.id)}
+                onOpen={() => router.push(`/debts/${debt.id}`)}
                 onEdit={() => openEdit(debt)}
                 onPay={() => setPaying(debt)}
                 onDelete={() => setDeleting(debt)}
@@ -376,7 +375,7 @@ export function DebtsView({
                     return (
                       <tr
                         key={debt.id}
-                        onClick={() => setOpenDetailId(debt.id)}
+                        onClick={() => router.push(`/debts/${debt.id}`)}
                         className="cursor-pointer transition-colors duration-fast hover:bg-muted/30"
                       >
                         <td className="p-3">
@@ -389,7 +388,15 @@ export function DebtsView({
                               <CatIcon className="size-4" />
                             </span>
                             <div className="min-w-0">
-                              <p className="truncate font-medium">{debt.creditor_name}</p>
+                              {/* A real link, so keyboard and middle-click work
+                                  even though the whole row is clickable. */}
+                              <Link
+                                href={`/debts/${debt.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="block truncate font-medium hover:underline"
+                              >
+                                {debt.creditor_name}
+                              </Link>
                               <div className="mt-0.5 flex items-center gap-1.5">
                                 <Badge
                                   variant="outline"
@@ -470,12 +477,6 @@ export function DebtsView({
         onOpenChange={(v) => !v && setPaying(null)}
         onPaid={() => router.refresh()}
       />
-      <DebtDetailDialog
-        debtId={openDetailId}
-        open={!!openDetailId}
-        onOpenChange={(v) => !v && setOpenDetailId(null)}
-      />
-
       <AlertDialog open={!!deleting} onOpenChange={(v) => !v && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

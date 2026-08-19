@@ -53,7 +53,7 @@ export function DueAlertsBell({ alerts }: { alerts: DueAlerts }) {
               return (
                 <li key={row.id}>
                   <Link
-                    href="/debts"
+                    href={`/debts/${row.id}`}
                     className="flex items-start gap-3 rounded-md px-2 py-2 transition-colors duration-fast hover:bg-secondary"
                   >
                     <span

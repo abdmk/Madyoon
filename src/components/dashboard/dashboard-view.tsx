@@ -193,50 +193,55 @@ export function DashboardView({
                     : 0;
 
                 return (
-                  <li key={debt.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <span
-                      className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
-                      aria-hidden
+                  <li key={debt.id}>
+                    <Link
+                      href={`/debts/${debt.id}`}
+                      className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors duration-fast hover:bg-muted/40"
                     >
-                      <CatIcon className="size-5" />
-                    </span>
+                      <span
+                        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
+                        aria-hidden
+                      >
+                        <CatIcon className="size-5" />
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-medium">{debt.creditor_name}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-medium">{debt.creditor_name}</p>
+                          <Badge
+                            variant="outline"
+                            className={cn('shrink-0', PRIORITIES[debt.priority].className)}
+                          >
+                            {PRIORITIES[debt.priority].label}
+                          </Badge>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{cat.label}</span>
+                          {debt.due_date ? (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span className={due.className}>
+                                {formatDate(debt.due_date)} ({due.label})
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                        <Progress value={pct} className="mt-2 h-1.5" />
+                      </div>
+
+                      <div className="shrink-0 text-end">
+                        <p className="font-medium tabular">
+                          {formatAmount(debt.remaining_amount, debt.currency)}
+                        </p>
                         <Badge
                           variant="outline"
-                          className={cn('shrink-0', PRIORITIES[debt.priority].className)}
+                          className={cn('mt-1', DEBT_STATUS[debt.status].className)}
                         >
-                          {PRIORITIES[debt.priority].label}
+                          {DEBT_STATUS[debt.status].label}
                         </Badge>
                       </div>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{cat.label}</span>
-                        {debt.due_date ? (
-                          <>
-                            <span aria-hidden>·</span>
-                            <span className={due.className}>
-                              {formatDate(debt.due_date)} ({due.label})
-                            </span>
-                          </>
-                        ) : null}
-                      </div>
-                      <Progress value={pct} className="mt-2 h-1.5" />
-                    </div>
-
-                    <div className="shrink-0 text-end">
-                      <p className="font-medium tabular">
-                        {formatAmount(debt.remaining_amount, debt.currency)}
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className={cn('mt-1', DEBT_STATUS[debt.status].className)}
-                      >
-                        {DEBT_STATUS[debt.status].label}
-                      </Badge>
-                    </div>
+                    </Link>
                   </li>
                 );
               })}

@@ -110,6 +110,7 @@ function EmailPasswordForm({
   onError: (message: string | null) => void;
 }) {
   const [mode, setMode] = React.useState<'signin' | 'signup'>('signin');
+  const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -119,6 +120,11 @@ function EmailPasswordForm({
     e.preventDefault();
     onError(null);
     setConfirmSent(false);
+
+    if (mode === 'signup' && !name.trim()) {
+      onError('أدخل اسمك.');
+      return;
+    }
 
     if (!email.trim() || password.length < 6) {
       onError('أدخل بريداً صحيحاً وكلمة مرور من ٦ أحرف على الأقل.');
@@ -152,7 +158,10 @@ function EmailPasswordForm({
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: { full_name: name.trim() },
+      },
     });
     setLoading(false);
 
@@ -185,6 +194,20 @@ function EmailPasswordForm({
 
   return (
     <form onSubmit={submit} className="space-y-3">
+      {mode === 'signup' ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="name">الاسم الكامل</Label>
+          <Input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+            required
+          />
+        </div>
+      ) : null}
+
       <div className="space-y-1.5">
         <Label htmlFor="email">البريد الإلكتروني</Label>
         <Input
@@ -222,6 +245,7 @@ function EmailPasswordForm({
         type="button"
         onClick={() => {
           setMode((m) => (m === 'signin' ? 'signup' : 'signin'));
+          setName('');
           onError(null);
         }}
         className="w-full text-center text-xs text-muted-foreground hover:text-foreground hover:underline"

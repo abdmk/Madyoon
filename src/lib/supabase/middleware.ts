@@ -60,5 +60,14 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Belt and suspenders against any CDN/browser caching a signed-in response:
+  // every page behind auth is unique to the account that requested it, so a
+  // cached copy served to someone else would be one user seeing another's
+  // account. Public marketing/login pages are the same for everyone and are
+  // left free to cache normally.
+  if (!isPublic) {
+    response.headers.set('Cache-Control', 'private, no-store, must-revalidate');
+  }
+
   return response;
 }

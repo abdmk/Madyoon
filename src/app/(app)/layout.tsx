@@ -7,6 +7,14 @@ import { AlertsBellServer } from '@/components/layout/alerts-bell-server';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { SessionProvider } from '@/components/session-provider';
 
+// Every page under this layout renders one signed-in account's data. Force
+// dynamic rendering (and skip the fetch cache) so nothing here can ever be
+// reused across requests — a cached response here would leak one user's
+// debts, profile or alerts to whoever loads the page next.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = await getProfile();
   if (!profile) redirect('/login');

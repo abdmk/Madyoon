@@ -18,7 +18,19 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const next = searchParams.get('next');
   const target = next && next.startsWith('/') ? next : '/dashboard';
-  const base = getSiteUrl(origin);
+
+  // getSiteUrl() throws in Production if NEXT_PUBLIC_SITE_URL is missing —
+  // a deploy misconfiguration, not a user error. Surface it as a plain-text
+  // 500 with the exact cause instead of letting Next.js's generic error
+  // page hide why every login attempt is failing.
+  let base: string;
+  try {
+    base = getSiteUrl(origin);
+  } catch (err) {
+    return new NextResponse(err instanceof Error ? err.message : 'Site URL misconfigured.', {
+      status: 500,
+    });
+  }
 
   if (!code) {
     return NextResponse.redirect(`${base}/login?error=oauth`);

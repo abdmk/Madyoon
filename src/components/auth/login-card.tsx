@@ -22,6 +22,11 @@ const ERRORS: Record<string, string> = {
   session: 'انتهت الجلسة. يرجى تسجيل الدخول من جديد.',
 };
 
+// getSiteUrl() throws in Production if NEXT_PUBLIC_SITE_URL is missing —
+// that's a deploy misconfiguration, not something the user caused, but it
+// must still surface as a message instead of a silent unhandled rejection.
+const SITE_CONFIG_ERROR = 'خطأ في إعداد الموقع. تواصل مع الدعم الفني.';
+
 export function LoginCard({ next, error }: { next?: string; error?: string }) {
   const [googleLoading, setGoogleLoading] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(
@@ -31,9 +36,18 @@ export function LoginCard({ next, error }: { next?: string; error?: string }) {
   async function signInWithGoogle() {
     setGoogleLoading(true);
     setMessage(null);
-    const supabase = getSupabaseBrowserClient();
 
-    const callback = new URL('/auth/callback', getSiteUrl(window.location.origin));
+    let siteUrl: string;
+    try {
+      siteUrl = getSiteUrl(window.location.origin);
+    } catch {
+      setMessage(SITE_CONFIG_ERROR);
+      setGoogleLoading(false);
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    const callback = new URL('/auth/callback', siteUrl);
     if (next) callback.searchParams.set('next', next);
 
     const { error: signInError } = await supabase.auth.signInWithOAuth({
@@ -156,11 +170,20 @@ function EmailPasswordForm({
     }
 
     // Sign-up
+    let siteUrl: string;
+    try {
+      siteUrl = getSiteUrl(window.location.origin);
+    } catch {
+      setLoading(false);
+      onError(SITE_CONFIG_ERROR);
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${getSiteUrl(window.location.origin)}/auth/callback`,
+        emailRedirectTo: `${siteUrl}/auth/callback`,
         data: { full_name: name.trim() },
       },
     });

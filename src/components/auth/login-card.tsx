@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSiteUrl } from '@/lib/site-url';
 
 const HIGHLIGHTS = [
   { icon: BarChart3, text: 'تتبّع ديونك ومصاريفك في مكان واحد' },
@@ -32,7 +33,7 @@ export function LoginCard({ next, error }: { next?: string; error?: string }) {
     setMessage(null);
     const supabase = getSupabaseBrowserClient();
 
-    const callback = new URL('/auth/callback', window.location.origin);
+    const callback = new URL('/auth/callback', getSiteUrl(window.location.origin));
     if (next) callback.searchParams.set('next', next);
 
     const { error: signInError } = await supabase.auth.signInWithOAuth({
@@ -159,7 +160,7 @@ function EmailPasswordForm({
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${getSiteUrl(window.location.origin)}/auth/callback`,
         data: { full_name: name.trim() },
       },
     });

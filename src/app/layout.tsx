@@ -14,7 +14,17 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   applicationName: APP_NAME,
   appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: 'default' },
-  icons: { icon: '/icon.svg', apple: '/icon.svg' },
+  icons: {
+    // SVG first for browsers that support it (crisp at any size); PNG
+    // fallbacks after for the ones that don't, and an explicit PNG for
+    // apple-touch-icon since iOS ignores SVG there.
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   formatDetection: { telephone: false },
 };
 

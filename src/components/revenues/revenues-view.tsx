@@ -258,9 +258,16 @@ export function RevenuesView({
               value={query.to}
               onChange={(e) => update({ to: e.target.value })}
               aria-label="إلى تاريخ"
+              className="min-w-0 flex-1"
             />
             {hasFilters ? (
-              <Button variant="ghost" size="icon" aria-label="مسح الفلاتر" onClick={resetFilters}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="مسح الفلاتر"
+                onClick={resetFilters}
+                className="shrink-0"
+              >
                 <X className="size-4" />
               </Button>
             ) : null}

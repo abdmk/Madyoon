@@ -108,6 +108,34 @@
   html {
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
+    /* Lets native controls (date pickers, scrollbars) pick a light or dark
+       rendering that matches the theme instead of always using light. */
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* The native calendar icon defaults to a color that goes invisible against
+     a dark input in some browsers unless color-scheme says the field is dark. */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    /* A little breathing room so it's a comfortable tap target on phones. */
+    padding: 2px;
+  }
+
+  /* iOS Safari zooms the whole page in when a focused input's font-size is
+     under 16px — every text/number/date field here was 14px (text-sm), so
+     tapping any of them on an iPhone jump-zoomed the page. 16px avoids it
+     without changing how inputs look on larger screens where zoom never
+     triggers. */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 
   body {

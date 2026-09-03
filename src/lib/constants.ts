@@ -90,6 +90,7 @@ export const EXPENSE_CATEGORIES = [
   { value: 'shopping', label: 'تسوق', icon: '🛍️', color: 'hsl(330 81% 60%)' },
   { value: 'entertainment', label: 'ترفيه', icon: '🎬', color: 'hsl(280 65% 60%)' },
   { value: 'family', label: 'عائلة', icon: '👨‍👩‍👧', color: 'hsl(174 72% 40%)' },
+  { value: 'charity', label: 'صدقة', icon: '🤲', color: 'hsl(158 64% 40%)' },
   { value: 'other', label: 'أخرى', icon: '📦', color: 'hsl(215 16% 47%)' },
 ] as const;
 

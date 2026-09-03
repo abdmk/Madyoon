@@ -48,6 +48,14 @@ export interface ExpenseQuery {
   page: number;
 }
 
+export interface RevenueQuery {
+  search: string;
+  category: string;
+  from: string;
+  to: string;
+  page: number;
+}
+
 const DEBT_CATEGORY_VALUES = [
   'personal',
   'credit_card',
@@ -99,6 +107,18 @@ export function parseExpenseQuery(params: SearchParams): ExpenseQuery {
   };
 }
 
+export function parseRevenueQuery(params: SearchParams): RevenueQuery {
+  const from = one(params, 'from');
+  const to = one(params, 'to');
+  return {
+    search: one(params, 'q').slice(0, 100),
+    category: one(params, 'category') || 'all',
+    from: ISO_DATE.test(from) ? from : '',
+    to: ISO_DATE.test(to) ? to : '',
+    page: pageOf(params),
+  };
+}
+
 /** Builds the querystring for a list page, omitting anything left at default. */
 export function debtQueryString(query: Partial<DebtQuery>) {
   const params = new URLSearchParams();
@@ -121,6 +141,16 @@ export function expenseQueryString(query: Partial<ExpenseQuery>) {
   return params.toString();
 }
 
+export function revenueQueryString(query: Partial<RevenueQuery>) {
+  const params = new URLSearchParams();
+  if (query.search) params.set('q', query.search);
+  if (query.category && query.category !== 'all') params.set('category', query.category);
+  if (query.from) params.set('from', query.from);
+  if (query.to) params.set('to', query.to);
+  if (query.page && query.page > 1) params.set('page', String(query.page));
+  return params.toString();
+}
+
 export function debtFiltersActive(query: DebtQuery) {
   return (
     (query.category !== 'all' ? 1 : 0) +
@@ -130,5 +160,9 @@ export function debtFiltersActive(query: DebtQuery) {
 }
 
 export function expenseFiltersActive(query: ExpenseQuery) {
+  return !!query.search || query.category !== 'all' || !!query.from || !!query.to;
+}
+
+export function revenueFiltersActive(query: RevenueQuery) {
   return !!query.search || query.category !== 'all' || !!query.from || !!query.to;
 }

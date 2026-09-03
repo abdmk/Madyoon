@@ -93,6 +93,15 @@ export const EXPENSE_CATEGORIES = [
   { value: 'other', label: 'أخرى', icon: '📦', color: 'hsl(215 16% 47%)' },
 ] as const;
 
+export const REVENUE_CATEGORIES = [
+  { value: 'salary', label: 'راتب', icon: '💼', color: 'hsl(142 71% 45%)' },
+  { value: 'business', label: 'عمل حر / تجارة', icon: '🧾', color: 'hsl(217 91% 60%)' },
+  { value: 'investment', label: 'استثمار', icon: '📈', color: 'hsl(199 89% 48%)' },
+  { value: 'gift', label: 'هدية', icon: '🎁', color: 'hsl(330 81% 60%)' },
+  { value: 'refund', label: 'استرجاع مبلغ', icon: '↩️', color: 'hsl(258 90% 66%)' },
+  { value: 'other', label: 'أخرى', icon: '💰', color: 'hsl(215 16% 47%)' },
+] as const;
+
 /** Days before the due date at which a debt starts showing as "قريب". */
 export const DUE_SOON_DAYS = 7;
 
@@ -104,6 +113,9 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   'expense.create': 'إضافة مصروف',
   'expense.update': 'تعديل مصروف',
   'expense.delete': 'حذف مصروف',
+  'revenue.create': 'إضافة إيراد',
+  'revenue.update': 'تعديل إيراد',
+  'revenue.delete': 'حذف إيراد',
   'share.create': 'إنشاء دعوة مشاركة',
   'share.accept': 'قبول دعوة مشاركة',
   'share.revoke': 'إلغاء مشاركة',

@@ -6,9 +6,18 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#g)" />
+
+  <!-- "M" monogram, its two peaks doubling as a money-flow line. -->
   <path
-    d="M150 168h44v130c0 26 16 42 42 42s42-16 42-42V168h44v132c0 50-34 82-86 82s-86-32-86-82V168Z"
-    fill="#fff"
+    d="M138 344 L138 182 L256 300 L374 182 L374 344"
+    fill="none"
+    stroke="#fff"
+    stroke-width="40"
+    stroke-linecap="round"
+    stroke-linejoin="round"
   />
-  <rect x="150" y="366" width="212" height="26" rx="13" fill="#fff" opacity="0.85" />
+
+  <!-- Coin accent, top-right. -->
+  <circle cx="404" cy="138" r="26" fill="#fbbf24" />
+  <circle cx="404" cy="138" r="26" fill="none" stroke="#fff" stroke-width="6" opacity="0.35" />
 </svg>

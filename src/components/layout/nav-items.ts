@@ -6,6 +6,7 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
+  TrendingUp,
   Users,
   Wallet,
   type LucideIcon,
@@ -22,6 +23,7 @@ export interface NavItem {
 export const MAIN_NAV: NavItem[] = [
   { href: '/dashboard', label: 'الرئيسية', icon: LayoutDashboard },
   { href: '/debts', label: 'الديون', icon: Wallet, prefix: true },
+  { href: '/revenues', label: 'الإيرادات', icon: TrendingUp, prefix: true },
   { href: '/expenses', label: 'المصاريف', icon: Receipt, prefix: true },
   { href: '/chatbot', label: 'المساعد الذكي', icon: Bot },
   { href: '/settings', label: 'الإعدادات', icon: Settings },
@@ -34,10 +36,11 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/audit-logs', label: 'السجلات', icon: ScrollText },
 ];
 
-/** Bottom tab bar on phones — the five most-used destinations. */
+/** Bottom tab bar on phones — the most-used destinations. */
 export const MOBILE_NAV: NavItem[] = [
   { href: '/dashboard', label: 'الرئيسية', icon: LayoutDashboard },
   { href: '/debts', label: 'الديون', icon: Wallet, prefix: true },
+  { href: '/revenues', label: 'الإيرادات', icon: TrendingUp, prefix: true },
   { href: '/expenses', label: 'المصاريف', icon: Receipt, prefix: true },
   { href: '/chatbot', label: 'المساعد', icon: Bot },
   { href: '/settings', label: 'الإعدادات', icon: Settings },

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Receipt,
   TrendingDown,
+  TrendingUp,
   Wallet,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
@@ -50,9 +51,10 @@ export function DashboardView({
   currency: string;
   data: DashboardData;
 }) {
-  const { debts, expenses, breakdown, trend, urgent } = data;
+  const { debts, expenses, revenues, breakdown, trend, urgent } = data;
   const progress = debts.total > 0 ? (debts.paid / debts.total) * 100 : 0;
   const firstName = name.split(' ')[0] || '';
+  const net = revenues.monthTotal - expenses.monthTotal;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -94,11 +96,25 @@ export function DashboardView({
           tone="success"
         />
         <StatCard
+          label="إيرادات الشهر"
+          value={formatAmount(revenues.monthTotal, currency)}
+          hint={`${revenues.count} عملية مسجلة`}
+          icon={TrendingUp}
+          tone="success"
+        />
+        <StatCard
           label="مصاريف الشهر"
           value={formatAmount(expenses.monthTotal, currency)}
           hint={`${expenses.count} عملية مسجلة`}
           icon={Receipt}
           tone="accent"
+        />
+        <StatCard
+          label="صافي الشهر"
+          value={formatAmount(net, currency)}
+          hint={net >= 0 ? 'الإيرادات تغطي المصاريف' : 'المصاريف تتجاوز الإيرادات'}
+          icon={net >= 0 ? TrendingUp : TrendingDown}
+          tone={net >= 0 ? 'success' : 'destructive'}
         />
       </div>
 

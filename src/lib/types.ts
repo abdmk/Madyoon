@@ -89,6 +89,25 @@ export type ExpenseListItem = Omit<
   'user_id' | 'notes' | 'created_at' | 'updated_at'
 >;
 
+export interface Revenue {
+  id: string;
+  user_id: string;
+  source: string;
+  amount: number;
+  currency: string;
+  date: string;
+  category: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** What the revenues list renders. */
+export type RevenueListItem = Omit<
+  Revenue,
+  'user_id' | 'notes' | 'created_at' | 'updated_at'
+>;
+
 export interface DebtsSummary {
   total: number;
   paid: number;
@@ -119,6 +138,20 @@ export interface ExpensesPage {
   byCategory: ExpenseCategoryTotal[];
 }
 
+export interface RevenueCategoryTotal {
+  category: string;
+  total: number;
+  count: number;
+}
+
+export interface RevenuesPage {
+  rows: RevenueListItem[];
+  total: number;
+  sum: number;
+  monthTotal: number;
+  byCategory: RevenueCategoryTotal[];
+}
+
 export interface DashboardData {
   debts: {
     total: number;
@@ -131,6 +164,7 @@ export interface DashboardData {
     dueSoon: number;
   };
   expenses: { count: number; monthTotal: number };
+  revenues: { count: number; monthTotal: number };
   breakdown: { key: string; value: number }[];
   trend: { month: string; total: number }[];
   urgent: DebtListItem[];

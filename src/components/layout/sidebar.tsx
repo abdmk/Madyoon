@@ -59,9 +59,12 @@ export function SidebarContent({
   return (
     <div className="flex h-full flex-col gap-6 p-4">
       <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-3 px-1">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground shadow-md shadow-primary/25">
-          ₪
-        </span>
+        <img
+          src="/icon.svg"
+          alt=""
+          aria-hidden
+          className="size-10 shrink-0 rounded-xl shadow-md shadow-primary/25"
+        />
         <span className="min-w-0">
           <span className="block truncate font-display text-base font-semibold">{APP_NAME}</span>
           <span className="block truncate text-xs text-muted-foreground">{APP_TAGLINE}</span>

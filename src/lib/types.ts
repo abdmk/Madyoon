@@ -161,13 +161,34 @@ export interface DashboardData {
     settled: number;
     active: number;
     overdue: number;
+    overdueAmount: number;
     dueSoon: number;
+    dueSoonAmount: number;
   };
   expenses: { count: number; monthTotal: number };
   revenues: { count: number; monthTotal: number };
   breakdown: { key: string; value: number }[];
   trend: { month: string; total: number }[];
   urgent: DebtListItem[];
+}
+
+export type DashboardPeriod = 'today' | 'week' | 'month' | 'year';
+
+export interface DashboardPeriodPoint {
+  label: string;
+  revenues: number;
+  expenses: number;
+  collected: number;
+}
+
+export interface DashboardPeriodSummary {
+  totals: {
+    revenues: number;
+    expenses: number;
+    collected: number;
+    newDebt: number;
+  };
+  series: DashboardPeriodPoint[];
 }
 
 export interface DueAlertRow {

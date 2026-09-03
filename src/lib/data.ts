@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { PAGE_SIZE, type DebtQuery, type ExpenseQuery, type RevenueQuery } from '@/lib/params';
 import type {
   DashboardData,
+  DashboardPeriod,
+  DashboardPeriodSummary,
   DebtDetail,
   DebtsPage,
   DueAlerts,
@@ -59,13 +61,20 @@ const EMPTY_DASHBOARD: DashboardData = {
     settled: 0,
     active: 0,
     overdue: 0,
+    overdueAmount: 0,
     dueSoon: 0,
+    dueSoonAmount: 0,
   },
   expenses: { count: 0, monthTotal: 0 },
   revenues: { count: 0, monthTotal: 0 },
   breakdown: [],
   trend: [],
   urgent: [],
+};
+
+const EMPTY_PERIOD_SUMMARY: DashboardPeriodSummary = {
+  totals: { revenues: 0, expenses: 0, collected: 0, newDebt: 0 },
+  series: [],
 };
 
 export async function getDebtsPage(ownerId: string, query: DebtQuery): Promise<DebtsPage> {
@@ -142,6 +151,20 @@ export async function getDashboard(ownerId: string): Promise<DashboardData> {
 
   if (error || !data) return EMPTY_DASHBOARD;
   return data as DashboardData;
+}
+
+export async function getDashboardPeriodSummary(
+  ownerId: string,
+  period: DashboardPeriod,
+): Promise<DashboardPeriodSummary> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('dashboard_period_summary', {
+    p_owner: ownerId,
+    p_period: period,
+  });
+
+  if (error || !data) return EMPTY_PERIOD_SUMMARY;
+  return data as DashboardPeriodSummary;
 }
 
 /**

@@ -4,9 +4,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
-  Receipt,
+  Clock,
   TrendingDown,
-  TrendingUp,
   Wallet,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
@@ -16,10 +15,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress, Skeleton } from '@/components/ui/misc';
+import { FinancialOverview } from './financial-overview';
 import { dueInfo, formatAmount, formatDate, formatPercent } from '@/lib/format';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import type { DashboardData } from '@/lib/types';
+import type { DashboardData, DashboardPeriodSummary } from '@/lib/types';
 
 // Recharts is the single heaviest dependency on this page. Splitting it into
 // its own chunk keeps it out of the dashboard's initial JS — the KPI cards,
@@ -31,11 +31,6 @@ const DebtsBreakdownChart = dynamic(
   { ssr: false, loading: ChartSkeleton },
 );
 
-const ExpensesTrendChart = dynamic(
-  () => import('./trend-chart').then((m) => m.ExpensesTrendChart),
-  { ssr: false, loading: ChartSkeleton },
-);
-
 /**
  * Every number here comes from `dashboard_summary` (see
  * supabase/migrations/0005_query_performance.sql) — one Postgres round trip
@@ -43,18 +38,21 @@ const ExpensesTrendChart = dynamic(
  * this page loads a full table to reduce it in the browser.
  */
 export function DashboardView({
+  ownerId,
   name,
   currency,
   data,
+  initialPeriodSummary,
 }: {
+  ownerId: string;
   name: string;
   currency: string;
   data: DashboardData;
+  initialPeriodSummary: DashboardPeriodSummary;
 }) {
-  const { debts, expenses, revenues, breakdown, trend, urgent } = data;
+  const { debts, breakdown, urgent } = data;
   const progress = debts.total > 0 ? (debts.paid / debts.total) * 100 : 0;
   const firstName = name.split(' ')[0] || '';
-  const net = revenues.monthTotal - expenses.monthTotal;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -70,8 +68,9 @@ export function DashboardView({
         </Button>
       </PageHeader>
 
-      {/* The one number that matters most, front and centre. */}
-      <div className="grid grid-cols-2 gap-3 stagger sm:gap-4 lg:grid-cols-4">
+      {/* Debt status at a glance — the one number that matters most, front
+          and centre, plus what's overdue or coming due right now. */}
+      <div className="grid grid-cols-2 gap-3 stagger sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         <StatCard
           label="المتبقي عليك"
           value={formatAmount(debts.remaining, currency)}
@@ -79,7 +78,7 @@ export function DashboardView({
           icon={TrendingDown}
           tone="warning"
           emphasis
-          className="col-span-2 lg:col-span-1"
+          className="col-span-2 sm:col-span-1 lg:col-span-1"
         />
         <StatCard
           label="إجمالي الديون"
@@ -96,27 +95,24 @@ export function DashboardView({
           tone="success"
         />
         <StatCard
-          label="إيرادات الشهر"
-          value={formatAmount(revenues.monthTotal, currency)}
-          hint={`${revenues.count} عملية مسجلة`}
-          icon={TrendingUp}
-          tone="success"
+          label="أقساط متأخرة"
+          value={formatAmount(debts.overdueAmount, currency)}
+          hint={`${debts.overdue} قسط`}
+          icon={AlertTriangle}
+          tone="destructive"
         />
         <StatCard
-          label="مصاريف الشهر"
-          value={formatAmount(expenses.monthTotal, currency)}
-          hint={`${expenses.count} عملية مسجلة`}
-          icon={Receipt}
+          label="مستحقة قريباً"
+          value={formatAmount(debts.dueSoonAmount, currency)}
+          hint={`${debts.dueSoon} قسط خلال ٧ أيام`}
+          icon={Clock}
           tone="accent"
         />
-        <StatCard
-          label="صافي الشهر"
-          value={formatAmount(net, currency)}
-          hint={net >= 0 ? 'الإيرادات تغطي المصاريف' : 'المصاريف تتجاوز الإيرادات'}
-          icon={net >= 0 ? TrendingUp : TrendingDown}
-          tone={net >= 0 ? 'success' : 'destructive'}
-        />
       </div>
+
+      {/* Financial overview — revenue/expense/net/collected, switchable by
+          period, with the chart behind it. The centerpiece of the page. */}
+      <FinancialOverview ownerId={ownerId} currency={currency} initial={initialPeriodSummary} />
 
       {/* Overdue banner --------------------------------------------------- */}
       {debts.overdue > 0 ? (
@@ -162,109 +158,108 @@ export function DashboardView({
         </CardContent>
       </Card>
 
-      {/* Charts ----------------------------------------------------------- */}
+      {/* Breakdown chart + priority list, side by side on wide screens. */}
       <div className="grid gap-4 lg:grid-cols-2">
         <DebtsBreakdownChart breakdown={breakdown} currency={currency} />
-        <ExpensesTrendChart trend={trend} currency={currency} />
-      </div>
 
-      {/* Priority list ---------------------------------------------------- */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <CardTitle>الأولويات</CardTitle>
-              <CardDescription>الديون الأهم حسب الأولوية والموعد</CardDescription>
+        {/* Priority list -------------------------------------------------- */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle>الأولويات</CardTitle>
+                <CardDescription>الديون الأهم حسب الأولوية والموعد</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/debts">
+                  الكل
+                  <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
+                </Link>
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/debts">
-                الكل
-                <ArrowLeft className="size-4 transition-transform duration-fast group-hover:-translate-x-0.5" />
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {urgent.length === 0 ? (
-            <EmptyState
-              icon={CheckCircle2}
-              title="لا توجد ديون قيد السداد"
-              description="كل شيء مسدد. أضف ديناً جديداً لتتبعه هنا."
-              action={
-                <Button asChild size="sm">
-                  <Link href="/debts">إضافة دين</Link>
-                </Button>
-              }
-              className="border-0 py-8"
-            />
-          ) : (
-            <ul className="divide-y stagger">
-              {urgent.map((debt) => {
-                const due = dueInfo(debt);
-                const cat = DEBT_CATEGORIES[debt.category];
-                const CatIcon = cat.icon;
-                const pct =
-                  Number(debt.amount) > 0
-                    ? (Number(debt.paid_amount) / Number(debt.amount)) * 100
-                    : 0;
+          </CardHeader>
+          <CardContent>
+            {urgent.length === 0 ? (
+              <EmptyState
+                icon={CheckCircle2}
+                title="لا توجد ديون قيد السداد"
+                description="كل شيء مسدد. أضف ديناً جديداً لتتبعه هنا."
+                action={
+                  <Button asChild size="sm">
+                    <Link href="/debts">إضافة دين</Link>
+                  </Button>
+                }
+                className="border-0 py-8"
+              />
+            ) : (
+              <ul className="divide-y stagger">
+                {urgent.map((debt) => {
+                  const due = dueInfo(debt);
+                  const cat = DEBT_CATEGORIES[debt.category];
+                  const CatIcon = cat.icon;
+                  const pct =
+                    Number(debt.amount) > 0
+                      ? (Number(debt.paid_amount) / Number(debt.amount)) * 100
+                      : 0;
 
-                return (
-                  <li key={debt.id}>
-                    <Link
-                      href={`/debts/${debt.id}`}
-                      className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors duration-fast hover:bg-muted/40"
-                    >
-                      <span
-                        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-                        style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
-                        aria-hidden
+                  return (
+                    <li key={debt.id}>
+                      <Link
+                        href={`/debts/${debt.id}`}
+                        className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors duration-fast hover:bg-muted/40"
                       >
-                        <CatIcon className="size-5" />
-                      </span>
+                        <span
+                          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                          style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
+                          aria-hidden
+                        >
+                          <CatIcon className="size-5" />
+                        </span>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-medium">{debt.creditor_name}</p>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-medium">{debt.creditor_name}</p>
+                            <Badge
+                              variant="outline"
+                              className={cn('shrink-0', PRIORITIES[debt.priority].className)}
+                            >
+                              {PRIORITIES[debt.priority].label}
+                            </Badge>
+                          </div>
+                          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{cat.label}</span>
+                            {debt.due_date ? (
+                              <>
+                                <span aria-hidden>·</span>
+                                <span className={due.className}>
+                                  {formatDate(debt.due_date)} ({due.label})
+                                </span>
+                              </>
+                            ) : null}
+                          </div>
+                          <Progress value={pct} className="mt-2 h-1.5" />
+                        </div>
+
+                        <div className="shrink-0 text-end">
+                          <p className="font-medium tabular">
+                            {formatAmount(debt.remaining_amount, debt.currency)}
+                          </p>
                           <Badge
                             variant="outline"
-                            className={cn('shrink-0', PRIORITIES[debt.priority].className)}
+                            className={cn('mt-1', DEBT_STATUS[debt.status].className)}
                           >
-                            {PRIORITIES[debt.priority].label}
+                            {DEBT_STATUS[debt.status].label}
                           </Badge>
                         </div>
-                        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{cat.label}</span>
-                          {debt.due_date ? (
-                            <>
-                              <span aria-hidden>·</span>
-                              <span className={due.className}>
-                                {formatDate(debt.due_date)} ({due.label})
-                              </span>
-                            </>
-                          ) : null}
-                        </div>
-                        <Progress value={pct} className="mt-2 h-1.5" />
-                      </div>
-
-                      <div className="shrink-0 text-end">
-                        <p className="font-medium tabular">
-                          {formatAmount(debt.remaining_amount, debt.currency)}
-                        </p>
-                        <Badge
-                          variant="outline"
-                          className={cn('mt-1', DEBT_STATUS[debt.status].className)}
-                        >
-                          {DEBT_STATUS[debt.status].label}
-                        </Badge>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

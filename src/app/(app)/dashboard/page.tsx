@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getProfile } from '@/lib/supabase/server';
-import { getDashboard } from '@/lib/data';
+import { getDashboard, getDashboardPeriodSummary } from '@/lib/data';
 import { DashboardView } from '@/components/dashboard/dashboard-view';
 
 export const metadata: Metadata = { title: 'الرئيسية' };
@@ -10,10 +10,23 @@ export default async function DashboardPage() {
   const profile = await getProfile();
   if (!profile) redirect('/login');
 
-  // One aggregation round trip — every dashboard number is computed in
-  // Postgres (`dashboard_summary`), not by loading every debt and expense
-  // into the browser and reducing them there.
-  const data = await getDashboard(profile.id);
+  // Two aggregation round trips — every dashboard number is computed in
+  // Postgres (`dashboard_summary`, `dashboard_period_summary`), not by
+  // loading every debt/expense/revenue into the browser and reducing them
+  // there. The period defaults to "this month"; switching it on the client
+  // re-fetches just the period summary.
+  const [data, periodSummary] = await Promise.all([
+    getDashboard(profile.id),
+    getDashboardPeriodSummary(profile.id, 'month'),
+  ]);
 
-  return <DashboardView name={profile.name} currency={profile.currency} data={data} />;
+  return (
+    <DashboardView
+      ownerId={profile.id}
+      name={profile.name}
+      currency={profile.currency}
+      data={data}
+      initialPeriodSummary={periodSummary}
+    />
+  );
 }

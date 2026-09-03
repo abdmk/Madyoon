@@ -126,15 +126,17 @@
   }
 
   /* iOS Safari zooms the whole page in when a focused input's font-size is
-     under 16px — every text/number/date field here was 14px (text-sm), so
-     tapping any of them on an iPhone jump-zoomed the page. 16px avoids it
-     without changing how inputs look on larger screens where zoom never
-     triggers. */
+     under 16px — every text/number/date field here was 14px (Tailwind's
+     text-sm utility class), so tapping any of them on an iPhone jump-zoomed
+     the page. `!important` is needed because that utility class outranks a
+     plain element selector like `input` on specificity alone. 16px avoids
+     the zoom without changing how inputs look on larger screens, where it
+     never triggers. */
   @media (max-width: 640px) {
     input,
     select,
     textarea {
-      font-size: 16px;
+      font-size: 16px !important;
     }
   }
 

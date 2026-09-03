@@ -25,6 +25,7 @@ import { Pagination } from '@/components/shared/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/misc';
 import {
@@ -246,31 +247,44 @@ export function ExpensesView({
             </SelectContent>
           </Select>
 
-          <Input
-            type="date"
-            value={query.from}
-            onChange={(e) => update({ from: e.target.value })}
-            aria-label="من تاريخ"
-          />
-          <div className="flex gap-2">
+          {/* Native date inputs don't support `placeholder` — without a
+              visible label they're just an empty box with no clue what
+              they're for, especially on iOS before a value is picked. */}
+          <div className="space-y-1">
+            <Label htmlFor="expenses-from" className="px-1 text-xs font-normal text-muted-foreground">
+              من تاريخ
+            </Label>
             <Input
+              id="expenses-from"
               type="date"
-              value={query.to}
-              onChange={(e) => update({ to: e.target.value })}
-              aria-label="إلى تاريخ"
-              className="min-w-0 flex-1"
+              value={query.from}
+              onChange={(e) => update({ from: e.target.value })}
             />
-            {hasFilters ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="مسح الفلاتر"
-                onClick={resetFilters}
-                className="shrink-0"
-              >
-                <X className="size-4" />
-              </Button>
-            ) : null}
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="expenses-to" className="px-1 text-xs font-normal text-muted-foreground">
+              إلى تاريخ
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="expenses-to"
+                type="date"
+                value={query.to}
+                onChange={(e) => update({ to: e.target.value })}
+                className="min-w-0 flex-1"
+              />
+              {hasFilters ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="مسح الفلاتر"
+                  onClick={resetFilters}
+                  className="shrink-0"
+                >
+                  <X className="size-4" />
+                </Button>
+              ) : null}
+            </div>
           </div>
         </CardContent>
       </Card>

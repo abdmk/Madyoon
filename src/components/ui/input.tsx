@@ -17,7 +17,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         // A field in error state says so before the message is read.
         'aria-[invalid=true]:border-destructive aria-[invalid=true]:focus-visible:ring-destructive/25',
         // Numeric and date fields read left-to-right even inside an RTL page.
-        (type === 'number' || type === 'date') && 'text-left tabular [direction:ltr]',
+        // `isolate` stops WebKit's known bug where a `direction: ltr` field
+        // inside an RTL ancestor scrambles the day/month/year order of a
+        // native date input (shows as e.g. "042026/09/" instead of a date).
+        (type === 'number' || type === 'date') &&
+          'text-left tabular [direction:ltr] [unicode-bidi:isolate]',
         className,
       )}
       {...props}

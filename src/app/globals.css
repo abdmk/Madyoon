@@ -113,6 +113,18 @@
     color-scheme: light;
   }
 
+  /* Belt and suspenders against horizontal scroll: a grid/flex item with
+     unbreakable content (a long formatted amount, a name with no spaces)
+     can still force itself wider than its track even with min-w-0 fixes
+     applied everywhere we know about. This clips any that slip through
+     instead of letting the whole page scroll sideways or content run off
+     the edge on a narrow phone. */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   html.dark {
     color-scheme: dark;
   }

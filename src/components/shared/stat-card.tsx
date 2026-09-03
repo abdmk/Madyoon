@@ -37,7 +37,12 @@ export function StatCard({
   className?: string;
 }) {
   return (
-    <Card className={cn('hover-lift p-4 sm:p-5', className)}>
+    // min-w-0: without it, a CSS grid item defaults to its content's
+    // min-content width — a long formatted amount could force this card
+    // (and the whole grid track it sits in) wider than the viewport on a
+    // narrow phone, pushing content off-screen instead of letting `truncate`
+    // do its job.
+    <Card className={cn('hover-lift min-w-0 p-4 sm:p-5', className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[13px] font-medium text-muted-foreground">{label}</p>

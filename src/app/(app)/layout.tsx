@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { AlertsBellServer } from '@/components/layout/alerts-bell-server';
 import { MobileNav } from '@/components/navigation/mobile-nav';
+import { QuickAddFab } from '@/components/navigation/quick-add-fab';
 import { SessionProvider } from '@/components/session-provider';
 
 // Every page under this layout renders one signed-in account's data. Force
@@ -31,12 +32,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
         <div className="lg:ps-64">
           <Header profile={profile} alertsSlot={<AlertsBellServer promise={alertsPromise} />} />
-          <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pb-12 lg:pt-8">
+          {/* Bottom padding clears the tab bar and the floating action, which
+              are present below `lg` — the same breakpoint that hides them. */}
+          <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12 lg:pt-8">
             {children}
           </main>
         </div>
 
         <MobileNav />
+        <QuickAddFab />
       </div>
     </SessionProvider>
   );

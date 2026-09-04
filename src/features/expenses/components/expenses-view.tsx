@@ -59,6 +59,7 @@ import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PAGE_SIZE, ledgerFiltersActive, ledgerQueryString } from '@/lib/params';
 import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
+import { useOpenOnParam } from '@/hooks/use-open-on-param';
 import { cn } from '@/lib/utils';
 import type { Expense, ExpenseListItem, ExpensesPage } from '@/lib/types';
 import type { LedgerQuery } from '@/lib/params';
@@ -111,6 +112,9 @@ export function ExpensesView({
     setEditing(null);
     setFormOpen(true);
   }
+
+  // Lets the global add action land here with the form already open.
+  useOpenOnParam('new', openCreate);
 
   async function openEdit(expense: ExpenseListItem) {
     setEditLoading(true);

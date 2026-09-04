@@ -63,6 +63,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PAGE_SIZE } from '@/lib/params';
 import { DEBT_SORTS, DEBT_SORT_LABELS, debtFiltersActive, debtQueryString } from '@/features/debts/params';
 import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
+import { useOpenOnParam } from '@/hooks/use-open-on-param';
 import { cn } from '@/lib/utils';
 import type { Debt, DebtCategory, DebtListItem, DebtStatus, Priority } from '@/lib/types';
 import type { DebtQuery, DebtSort } from '@/features/debts/params';
@@ -95,6 +96,9 @@ export function DebtsView({
     setEditing(null);
     setFormOpen(true);
   }
+
+  // Lets the global add action land here with the form already open.
+  useOpenOnParam('new', openCreate);
 
   async function openEdit(debt: DebtListItem) {
     // The list row deliberately skips `notes` — fetch just that one column so

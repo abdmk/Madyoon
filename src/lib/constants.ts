@@ -91,6 +91,7 @@ export const EXPENSE_CATEGORIES = [
   { value: 'entertainment', label: 'ترفيه', icon: '🎬', color: 'hsl(280 65% 60%)' },
   { value: 'family', label: 'عائلة', icon: '👨‍👩‍👧', color: 'hsl(174 72% 40%)' },
   { value: 'charity', label: 'صدقة', icon: '🤲', color: 'hsl(158 64% 40%)' },
+  { value: 'work', label: 'مكان العمل', icon: '💼', color: 'hsl(217 33% 45%)' },
   { value: 'other', label: 'أخرى', icon: '📦', color: 'hsl(215 16% 47%)' },
 ] as const;
 

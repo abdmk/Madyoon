@@ -6,20 +6,18 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
+  Banknote,
   CheckCircle2,
   Download,
   FileText,
-  Filter,
   MoreVertical,
   Pencil,
   Phone,
   Plus,
   Printer,
-  Search,
   Trash2,
   TrendingDown,
   Wallet,
-  X,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
@@ -27,16 +25,15 @@ import { EmptyState } from '@/components/feedback/empty-state';
 import { Pagination } from '@/components/feedback/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Pill } from '@/components/ui/pill';
 import { Progress } from '@/components/ui/misc';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,28 +52,32 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/misc';
 import { DebtFormDialog } from './debt-form-dialog';
+import { DebtFilters } from './debt-filters';
 import { PaymentDialog } from './payment-dialog';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { dueInfo, formatAmount, formatCompactAmount, formatDate } from '@/lib/formatters';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PAGE_SIZE } from '@/lib/params';
-import { DEBT_SORTS, DEBT_SORT_LABELS, debtFiltersActive, debtQueryString } from '@/features/debts/params';
+import { debtFiltersActive, debtQueryString } from '@/features/debts/params';
+import { debtDisplayStatus } from '@/features/debts/status';
 import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import { useOpenOnParam } from '@/hooks/use-open-on-param';
 import { cn } from '@/lib/utils';
-import type { Debt, DebtCategory, DebtListItem, DebtStatus, Priority } from '@/lib/types';
-import type { DebtQuery, DebtSort } from '@/features/debts/params';
+import type { Debt, DebtListItem } from '@/lib/types';
+import type { DebtQuery } from '@/features/debts/params';
 import type { DebtsPage } from '@/lib/types';
 
 export function DebtsView({
   page,
   query,
   currency,
+  currencies,
 }: {
   page: DebtsPage;
   query: DebtQuery;
   currency: string;
+  currencies: string[];
 }) {
   const router = useRouter();
   const { update, setPage, pending } = useListQuery(query, debtQueryString);
@@ -86,19 +87,22 @@ export function DebtsView({
   const [editing, setEditing] = React.useState<Debt | null>(null);
   const [editLoading, setEditLoading] = React.useState(false);
   const [paying, setPaying] = React.useState<DebtListItem | null>(null);
+  const [pickPayment, setPickPayment] = React.useState(false);
   const [deleting, setDeleting] = React.useState<DebtListItem | null>(null);
-  const [showFilters, setShowFilters] = React.useState(false);
 
   const { rows, total, summary } = page;
   const activeFilterCount = debtFiltersActive(query);
+  const unsettled = rows.filter((d) => d.status !== 'paid');
 
   function openCreate() {
     setEditing(null);
     setFormOpen(true);
   }
 
-  // Lets the global add action land here with the form already open.
+  // Lets the global add / pay actions land here with the right thing already
+  // open, so "record a payment" from anywhere is a single tap plus a pick.
   useOpenOnParam('new', openCreate);
+  useOpenOnParam('pay', () => setPickPayment(true));
 
   async function openEdit(debt: DebtListItem) {
     // The list row deliberately skips `notes` — fetch just that one column so
@@ -148,6 +152,7 @@ export function DebtsView({
       { header: 'المتبقي', value: (d) => d.remaining_amount },
       { header: 'العملة', value: (d) => d.currency },
       { header: 'الاستحقاق', value: (d) => d.due_date ?? '' },
+      { header: 'آخر دفعة', value: (d) => d.last_payment_at ?? '' },
       { header: 'الأولوية', value: (d) => PRIORITIES[d.priority].label },
       { header: 'الحالة', value: (d) => DEBT_STATUS[d.status].label },
     ]);
@@ -155,8 +160,18 @@ export function DebtsView({
   }
 
   function resetFilters() {
-    update({ search: '', category: 'all', status: 'all', priority: 'all' });
+    update({
+      search: '',
+      category: 'all',
+      status: 'all',
+      priority: 'all',
+      currency: 'all',
+      from: '',
+      to: '',
+    });
   }
+
+  const listIsEmpty = total === 0 && !query.search && !activeFilterCount;
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -179,6 +194,15 @@ export function DebtsView({
           </DropdownMenuContent>
         </DropdownMenu>
 
+        <Button
+          variant="outline"
+          onClick={() => setPickPayment(true)}
+          disabled={unsettled.length === 0}
+        >
+          <Banknote className="size-4" />
+          تسجيل دفعة
+        </Button>
+
         <Button onClick={openCreate}>
           <Plus className="size-4" />
           دين جديد
@@ -194,135 +218,32 @@ export function DebtsView({
           value={summary.overdue}
           hint={`${summary.dueSoon} قريبة الاستحقاق`}
           icon={AlertTriangle}
-          tone="destructive"
+          tone={summary.overdue > 0 ? 'destructive' : 'success'}
         />
       </div>
 
-      {/* Filters ---------------------------------------------------------- */}
-      <Card className="no-print">
-        <CardContent className="space-y-3 p-3 sm:p-4">
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ابحث باسم الدائن أو الهاتف…"
-                className="pe-9"
-                aria-label="بحث في الديون"
-              />
-            </div>
-
-            <Select value={query.sort} onValueChange={(v) => update({ sort: v as DebtSort })}>
-              <SelectTrigger className="sm:w-52">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DEBT_SORTS.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {DEBT_SORT_LABELS[key]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant={showFilters || activeFilterCount ? 'default' : 'outline'}
-              onClick={() => setShowFilters((v) => !v)}
-              className="shrink-0"
-            >
-              <Filter className="size-4" />
-              فلاتر
-              {activeFilterCount ? (
-                <span className="rounded-full bg-background/25 px-1.5 text-xs tabular">
-                  {activeFilterCount}
-                </span>
-              ) : null}
-            </Button>
-          </div>
-
-          {showFilters ? (
-            <div className="grid animate-fade-up gap-2 border-t pt-3 sm:grid-cols-3">
-              <Select
-                value={query.category}
-                onValueChange={(v) => update({ category: v as DebtCategory | 'all' })}
-              >
-                <SelectTrigger aria-label="التصنيف">
-                  <SelectValue placeholder="التصنيف" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل التصنيفات</SelectItem>
-                  {Object.entries(DEBT_CATEGORIES).map(([key, cat]) => {
-                    const CatIcon = cat.icon;
-                    return (
-                      <SelectItem key={key} value={key}>
-                        <span className="inline-flex items-center gap-2">
-                          <CatIcon className="size-4" style={{ color: cat.color }} />
-                          {cat.label}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={query.status}
-                onValueChange={(v) => update({ status: v as DebtStatus | 'all' })}
-              >
-                <SelectTrigger aria-label="الحالة">
-                  <SelectValue placeholder="الحالة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل الحالات</SelectItem>
-                  {(Object.keys(DEBT_STATUS) as DebtStatus[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {DEBT_STATUS[key].label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={query.priority}
-                onValueChange={(v) => update({ priority: v as Priority | 'all' })}
-              >
-                <SelectTrigger aria-label="الأولوية">
-                  <SelectValue placeholder="الأولوية" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل الأولويات</SelectItem>
-                  {(Object.keys(PRIORITIES) as Priority[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {PRIORITIES[key].label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {activeFilterCount || query.search ? (
-                <Button variant="ghost" size="sm" onClick={resetFilters} className="sm:col-span-3">
-                  <X className="size-4" />
-                  مسح الفلاتر
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
+      <DebtFilters
+        query={query}
+        currencies={currencies}
+        activeCount={activeFilterCount}
+        search={search}
+        onSearchChange={setSearch}
+        update={update}
+        onReset={resetFilters}
+      />
 
       {/* Results ---------------------------------------------------------- */}
       {rows.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          title={total === 0 && !query.search && !activeFilterCount ? 'لا توجد ديون بعد' : 'لا نتائج مطابقة'}
+          title={listIsEmpty ? 'لا توجد ديون بعد' : 'لا نتائج مطابقة'}
           description={
-            total === 0 && !query.search && !activeFilterCount
+            listIsEmpty
               ? 'ابدأ بإضافة أول دين لتتبّع مبلغه وموعد استحقاقه.'
               : 'جرّب تعديل الفلاتر أو كلمة البحث.'
           }
           action={
-            total === 0 && !query.search && !activeFilterCount ? (
+            listIsEmpty ? (
               <Button onClick={openCreate}>
                 <Plus className="size-4" />
                 إضافة دين
@@ -354,15 +275,19 @@ export function DebtsView({
           <Card className="hidden overflow-hidden sm:block">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="border-b bg-muted/40 text-start">
+                <caption className="sr-only">
+                  قائمة الديون: الجهة، الوصف، المبلغ، المتبقي، الاستحقاق، الحالة، وآخر دفعة
+                </caption>
+                <thead className="border-b bg-muted/40">
                   <tr>
-                    <th className="p-3 text-start font-medium">الدائن</th>
-                    <th className="p-3 text-start font-medium">التصنيف</th>
-                    <th className="p-3 text-start font-medium">المبلغ</th>
-                    <th className="p-3 text-start font-medium">المتبقي</th>
-                    <th className="p-3 text-start font-medium">الاستحقاق</th>
-                    <th className="p-3 text-start font-medium">الحالة</th>
-                    <th className="p-3 text-start font-medium no-print">
+                    <th scope="col" className="p-3 text-start font-medium">الجهة</th>
+                    <th scope="col" className="p-3 text-start font-medium">الوصف</th>
+                    <th scope="col" className="p-3 text-start font-medium">المبلغ</th>
+                    <th scope="col" className="p-3 text-start font-medium">المتبقي</th>
+                    <th scope="col" className="p-3 text-start font-medium">الاستحقاق</th>
+                    <th scope="col" className="p-3 text-start font-medium">الحالة</th>
+                    <th scope="col" className="p-3 text-start font-medium">آخر دفعة</th>
+                    <th scope="col" className="p-3 text-start font-medium no-print">
                       <span className="sr-only">إجراءات</span>
                     </th>
                   </tr>
@@ -370,6 +295,8 @@ export function DebtsView({
                 <tbody className="divide-y">
                   {rows.map((debt) => {
                     const due = dueInfo(debt);
+                    const status = debtDisplayStatus(debt);
+                    const StatusIcon = status.icon;
                     const cat = DEBT_CATEGORIES[debt.category];
                     const CatIcon = cat.icon;
                     const pct =
@@ -393,33 +320,41 @@ export function DebtsView({
                               <CatIcon className="size-4" />
                             </span>
                             <div className="min-w-0">
-                              {/* A real link, so keyboard and middle-click work
-                                  even though the whole row is clickable. */}
+                              {/* Goes to the person, not the debt: their whole
+                                  history is usually the question being asked. */}
                               <Link
-                                href={`/debts/${debt.id}`}
+                                href={`/debts/creditor/${encodeURIComponent(debt.creditor_name)}`}
                                 onClick={(e) => e.stopPropagation()}
                                 className="block truncate font-medium hover:underline"
                               >
                                 {debt.creditor_name}
                               </Link>
-                              <div className="mt-0.5 flex items-center gap-1.5">
-                                <Badge
-                                  className={PRIORITIES[debt.priority].className}
-                                >
-                                  {PRIORITIES[debt.priority].label}
-                                </Badge>
-                                {debt.phone ? (
-                                  <span className="flex items-center gap-1 text-xs text-muted-foreground tabular">
-                                    <Phone className="size-3" />
-                                    {debt.phone}
-                                  </span>
-                                ) : null}
-                              </div>
+                              {debt.phone ? (
+                                <span className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground tabular">
+                                  <Phone className="size-3" aria-hidden />
+                                  {debt.phone}
+                                </span>
+                              ) : null}
                             </div>
                           </div>
                         </td>
-                        <td className="p-3 text-muted-foreground">
-                          {cat.label}
+                        <td className="max-w-[16rem] p-3">
+                          {/* There is no free-text description column on a
+                              debt — `custom_category` is what a person types
+                              when the fixed categories don't fit, so it is
+                              the closest thing to one. */}
+                          <p className="truncate text-muted-foreground">
+                            {debt.custom_category || cat.label}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Pill>{cat.label}</Pill>
+                            <Pill
+                              tone={debt.priority === 'critical' || debt.priority === 'high' ? 'warning' : 'neutral'}
+                              srLabel="الأولوية"
+                            >
+                              {PRIORITIES[debt.priority].label}
+                            </Pill>
+                          </div>
                         </td>
                         <td className="p-3 tabular">{formatAmount(debt.amount, debt.currency)}</td>
                         <td className="p-3">
@@ -439,9 +374,12 @@ export function DebtsView({
                           ) : null}
                         </td>
                         <td className="p-3">
-                          <Badge className={DEBT_STATUS[debt.status].className}>
-                            {DEBT_STATUS[debt.status].label}
-                          </Badge>
+                          <Pill tone={status.tone} icon={StatusIcon} srLabel="الحالة">
+                            {status.label}
+                          </Pill>
+                        </td>
+                        <td className="p-3 text-muted-foreground tabular">
+                          {debt.last_payment_at ? formatDate(debt.last_payment_at) : '—'}
                         </td>
                         <td className="p-3 no-print" onClick={(e) => e.stopPropagation()}>
                           <RowActions
@@ -468,6 +406,60 @@ export function DebtsView({
           />
         </div>
       )}
+
+      {/* Which debt am I paying? — the step between a global "record a
+          payment" action and the payment form itself. */}
+      <Sheet open={pickPayment} onOpenChange={setPickPayment}>
+        <SheetContent className="gap-4">
+          <SheetHeader>
+            <SheetTitle>تسجيل دفعة</SheetTitle>
+            <SheetDescription>
+              اختر الدين الذي تريد الخصم منه. إن لم يظهر، ابحث عنه في القائمة أولاً.
+            </SheetDescription>
+          </SheetHeader>
+
+          {unsettled.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              لا توجد ديون قائمة في هذه الصفحة.
+            </p>
+          ) : (
+            <ul className="-mx-1 max-h-[55dvh] divide-y overflow-y-auto">
+              {unsettled.map((debt) => {
+                const status = debtDisplayStatus(debt);
+                const StatusIcon = status.icon;
+                return (
+                  <li key={debt.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPickPayment(false);
+                        setPaying(debt);
+                      }}
+                      className={cn(
+                        'flex min-h-[56px] w-full items-center gap-3 rounded-lg px-1 py-3 text-start',
+                        'transition-colors duration-fast hover:bg-muted/40',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                      )}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{debt.creditor_name}</p>
+                        <div className="mt-1">
+                          <Pill tone={status.tone} icon={StatusIcon} srLabel="الحالة">
+                            {status.label}
+                          </Pill>
+                        </div>
+                      </div>
+                      <p className="shrink-0 font-medium tabular">
+                        {formatAmount(debt.remaining_amount, debt.currency)}
+                      </p>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <DebtFormDialog
         open={formOpen}
@@ -520,7 +512,7 @@ function RowActions({
       <DropdownMenuContent align="end">
         {debt.status !== 'paid' ? (
           <DropdownMenuItem onSelect={onPay}>
-            <CheckCircle2 />
+            <Banknote />
             تسجيل دفعة
           </DropdownMenuItem>
         ) : null}
@@ -552,6 +544,8 @@ function DebtCard({
   onDelete: () => void;
 }) {
   const due = dueInfo(debt);
+  const status = debtDisplayStatus(debt);
+  const StatusIcon = status.icon;
   const cat = DEBT_CATEGORIES[debt.category];
   const CatIcon = cat.icon;
   const pct =
@@ -586,7 +580,16 @@ function DebtCard({
               <RowActions debt={debt} onEdit={onEdit} onPay={onPay} onDelete={onDelete} />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{cat.label}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {debt.custom_category || cat.label}
+          </p>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <Pill tone={status.tone} icon={StatusIcon} srLabel="الحالة">
+              {status.label}
+            </Pill>
+            <Pill>{cat.label}</Pill>
+          </div>
 
           <div className="mt-3 flex items-end justify-between gap-2">
             <div>
@@ -595,14 +598,9 @@ function DebtCard({
                 {formatAmount(debt.remaining_amount, debt.currency)}
               </p>
             </div>
-            <div className="text-end">
-              <Badge className={DEBT_STATUS[debt.status].className}>
-                {DEBT_STATUS[debt.status].label}
-              </Badge>
-              {due.state !== 'none' ? (
-                <p className={cn('mt-1 text-xs', due.className)}>{due.label}</p>
-              ) : null}
-            </div>
+            {due.state !== 'none' ? (
+              <p className={cn('text-xs', due.className)}>{due.label}</p>
+            ) : null}
           </div>
 
           <Progress
@@ -616,6 +614,12 @@ function DebtCard({
             <span>{formatDate(debt.due_date)}</span>
           </div>
 
+          {debt.last_payment_at ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              آخر دفعة {formatDate(debt.last_payment_at)}
+            </p>
+          ) : null}
+
           {debt.status !== 'paid' ? (
             <Button
               size="sm"
@@ -626,7 +630,7 @@ function DebtCard({
                 onPay();
               }}
             >
-              <CheckCircle2 className="size-4" />
+              <Banknote className="size-4" />
               تسجيل دفعة
             </Button>
           ) : null}

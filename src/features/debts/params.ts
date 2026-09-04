@@ -1,5 +1,5 @@
 import { ISO_DATE, one, pageOf, pick, type SearchParams } from '@/lib/params';
-import type { DebtCategory, DebtStatus, Priority } from '@/lib/types';
+import type { DebtCategory, DebtDisplayStatus, Priority } from '@/lib/types';
 
 export const DEBT_SORTS = [
   'due_asc',
@@ -24,7 +24,12 @@ export const DEBT_SORT_LABELS: Record<DebtSort, string> = {
 export interface DebtQuery {
   search: string;
   category: DebtCategory | 'all';
-  status: DebtStatus | 'all';
+  /**
+   * Includes the virtual `overdue` status: unsettled and past its due date.
+   * `list_debts` resolves it in SQL against current_date, so the filter can
+   * never disagree with the badge the row is showing.
+   */
+  status: DebtDisplayStatus | 'all';
   priority: Priority | 'all';
   /** ISO 4217 code, or 'all'. */
   currency: string;
@@ -36,7 +41,7 @@ export interface DebtQuery {
 }
 
 const DEBT_CATEGORY_VALUES = ['personal', 'credit_card', 'loan', 'bill', 'business', 'other'];
-const DEBT_STATUS_VALUES = ['pending', 'partial', 'paid'];
+const DEBT_STATUS_VALUES = ['pending', 'partial', 'paid', 'overdue'];
 const PRIORITY_VALUES = ['low', 'medium', 'high', 'critical'];
 
 /** Anything unrecognised falls back to the default, so a hand-edited URL is safe. */

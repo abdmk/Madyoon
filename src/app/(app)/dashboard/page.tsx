@@ -10,14 +10,16 @@ export default async function DashboardPage() {
   const profile = await getProfile();
   if (!profile) redirect('/login');
 
-  // Two aggregation round trips — every dashboard number is computed in
-  // Postgres (`dashboard_summary`, `dashboard_period_summary`), not by
+  // Three aggregation round trips — every dashboard number is computed in
+  // Postgres (`dashboard_summary`, `dashboard_period_summary`, `attention_feed`),
+  // not by
   // loading every debt/expense/revenue into the browser and reducing them
   // there. The period defaults to "this month"; switching it on the client
   // re-fetches just the period summary.
-  const [data, periodSummary] = await Promise.all([
+  const [data, periodSummary, attention] = await Promise.all([
     getDashboard(profile.id),
     getDashboardPeriodSummary(profile.id, 'month'),
+    getAttentionFeed(profile.id),
   ]);
 
   return (
@@ -27,6 +29,7 @@ export default async function DashboardPage() {
       currency={profile.currency}
       data={data}
       initialPeriodSummary={periodSummary}
+      attention={attention}
     />
   );
 }

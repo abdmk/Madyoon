@@ -16,7 +16,7 @@ export function isAdmin(profile: Pick<Profile, 'role'> | null | undefined): bool
 }
 
 /** The label to show for a role. */
-export const ROLE_LABELS: Record<Role, string> = {
+const ROLE_LABELS: Record<Role, string> = {
   admin: 'مدير النظام',
   user: 'مستخدم',
 };

@@ -14,7 +14,7 @@ const TONES = {
   info: 'bg-soft-info text-soft-info-foreground',
 } as const;
 
-export type QuickActionTone = keyof typeof TONES;
+type QuickActionTone = keyof typeof TONES;
 
 interface BaseProps {
   label: string;
@@ -67,17 +67,6 @@ const SHELL = cn(
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
   'sm:p-4',
 );
-
-export function QuickAction({
-  onClick,
-  ...props
-}: BaseProps & { onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className={cn(SHELL, props.className)}>
-      <QuickActionShell {...props} />
-    </button>
-  );
-}
 
 export function QuickActionLink({ href, ...props }: BaseProps & { href: string }) {
   return (

@@ -253,8 +253,5 @@ $$;
 -- Grants
 -- ---------------------------------------------------------------------------
 
-revoke all on function public.dashboard_summary(uuid) from public, anon;
-grant execute on function public.dashboard_summary(uuid) to authenticated;
-
 revoke all on function public.dashboard_period_summary(uuid, text) from public, anon;
 grant execute on function public.dashboard_period_summary(uuid, text) to authenticated;

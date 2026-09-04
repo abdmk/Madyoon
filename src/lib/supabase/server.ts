@@ -12,11 +12,21 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
  * which otherwise each built their own and re-parsed the session cookie.
  */
 export const createClient = cache(() => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('[createClient] Missing environment variables:', {
+      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? '✓ Set' : '✗ Missing',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseKey ? '✓ Set' : '✗ Missing',
+    });
+  }
+
   const cookieStore = cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl!,
+    supabaseKey!,
     {
       cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {

@@ -45,6 +45,18 @@ export async function getDashboard(ownerId: string): Promise<DashboardData> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc('dashboard_summary', { p_owner: ownerId });
 
+  if (error) {
+    console.error('[getDashboard] RPC error:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+  }
+  if (!data) {
+    console.warn('[getDashboard] No data returned from RPC');
+  }
+
   if (error || !data) return EMPTY_DASHBOARD;
   return data as DashboardData;
 }
@@ -58,6 +70,18 @@ export async function getDashboardPeriodSummary(
     p_owner: ownerId,
     p_period: period,
   });
+
+  if (error) {
+    console.error('[getDashboardPeriodSummary] RPC error:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+  }
+  if (!data) {
+    console.warn('[getDashboardPeriodSummary] No data returned from RPC');
+  }
 
   if (error || !data) return EMPTY_PERIOD_SUMMARY;
   return data as DashboardPeriodSummary;
@@ -74,6 +98,18 @@ export async function getAttentionFeed(ownerId: string): Promise<AttentionFeed> 
     p_limit: 5,
   });
 
+  if (error) {
+    console.error('[getAttentionFeed] RPC error:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+  }
+  if (!data) {
+    console.warn('[getAttentionFeed] No data returned from RPC');
+  }
+
   if (error || !data) return EMPTY_ATTENTION;
   return data as AttentionFeed;
 }
@@ -85,6 +121,18 @@ export async function getAttentionFeed(ownerId: string): Promise<AttentionFeed> 
 export const getDueAlerts = cache(async (ownerId: string): Promise<DueAlerts> => {
   const supabase = createClient();
   const { data, error } = await supabase.rpc('due_alerts', { p_owner: ownerId, p_limit: 8 });
+
+  if (error) {
+    console.error('[getDueAlerts] RPC error:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+  }
+  if (!data) {
+    console.warn('[getDueAlerts] No data returned from RPC');
+  }
 
   if (error || !data) return { count: 0, rows: [] };
   return data as DueAlerts;

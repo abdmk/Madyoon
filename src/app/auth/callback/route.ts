@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getSiteUrl } from '@/lib/site-url';
+import { getSiteUrl } from '@/lib/auth/site-url';
 
 /**
  * Exchanges the OAuth/email code for a session cookie, then lands the user.

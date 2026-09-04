@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { SYSTEM_PROMPT, buildContext } from '@/lib/ai/prompt';
+import { SYSTEM_PROMPT, buildContext } from '@/features/chatbot/prompt';
 import type { ChatMessage, Debt, Expense, Profile } from '@/lib/types';
 
 export const runtime = 'nodejs';

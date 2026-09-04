@@ -19,7 +19,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/misc';
-import { formatAmount, formatDateTime, formatNumber, formatPercent } from '@/lib/format';
+import { formatAmount, formatDateTime, formatNumber, formatPercent } from '@/lib/formatters';
 import { AUDIT_ACTIONS } from '@/lib/constants';
 import type { AdminStats, AuditLog } from '@/lib/types';
 

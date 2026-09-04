@@ -20,8 +20,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
-import { EmptyState } from '@/components/shared/empty-state';
-import { Pagination } from '@/components/shared/pagination';
+import { EmptyState } from '@/components/feedback/empty-state';
+import { Pagination } from '@/components/feedback/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,14 +54,14 @@ import {
 } from '@/components/ui/misc';
 import { RevenueFormDialog } from './revenue-form-dialog';
 import { REVENUE_CATEGORIES } from '@/lib/constants';
-import { formatAmount, formatCompactAmount, formatDate } from '@/lib/format';
+import { formatAmount, formatCompactAmount, formatDate } from '@/lib/formatters';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { PAGE_SIZE, revenueFiltersActive, revenueQueryString } from '@/lib/params';
-import { useDebouncedSearch, useListQuery } from '@/lib/use-list-query';
+import { PAGE_SIZE, ledgerFiltersActive, ledgerQueryString } from '@/lib/params';
+import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import { cn } from '@/lib/utils';
 import type { Revenue, RevenueListItem, RevenuesPage } from '@/lib/types';
-import type { RevenueQuery } from '@/lib/params';
+import type { LedgerQuery } from '@/lib/params';
 
 interface CategoryMeta {
   value: string;
@@ -92,11 +92,11 @@ export function RevenuesView({
   currency,
 }: {
   page: RevenuesPage;
-  query: RevenueQuery;
+  query: LedgerQuery;
   currency: string;
 }) {
   const router = useRouter();
-  const { update, setPage, pending } = useListQuery(query, revenueQueryString);
+  const { update, setPage, pending } = useListQuery(query, ledgerQueryString);
   const [search, setSearch] = useDebouncedSearch(query.search, (v) => update({ search: v }));
 
   const [formOpen, setFormOpen] = React.useState(false);
@@ -105,7 +105,7 @@ export function RevenuesView({
   const [deleting, setDeleting] = React.useState<RevenueListItem | null>(null);
 
   const { rows, total, sum, monthTotal, byCategory } = page;
-  const hasFilters = revenueFiltersActive(query);
+  const hasFilters = ledgerFiltersActive(query);
 
   function openCreate() {
     setEditing(null);

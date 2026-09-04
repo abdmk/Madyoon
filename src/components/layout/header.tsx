@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/store/use-app-store';
-import { initials } from '@/lib/format';
+import { initials } from '@/lib/formatters';
 import type { Profile } from '@/lib/types';
 
 export function Header({

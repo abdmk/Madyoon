@@ -23,8 +23,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
-import { EmptyState } from '@/components/shared/empty-state';
-import { Pagination } from '@/components/shared/pagination';
+import { EmptyState } from '@/components/feedback/empty-state';
+import { Pagination } from '@/components/feedback/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -57,14 +57,15 @@ import {
 import { DebtFormDialog } from './debt-form-dialog';
 import { PaymentDialog } from './payment-dialog';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
-import { dueInfo, formatAmount, formatCompactAmount, formatDate } from '@/lib/format';
+import { dueInfo, formatAmount, formatCompactAmount, formatDate } from '@/lib/formatters';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { DEBT_SORTS, DEBT_SORT_LABELS, PAGE_SIZE, debtFiltersActive, debtQueryString } from '@/lib/params';
-import { useDebouncedSearch, useListQuery } from '@/lib/use-list-query';
+import { PAGE_SIZE } from '@/lib/params';
+import { DEBT_SORTS, DEBT_SORT_LABELS, debtFiltersActive, debtQueryString } from '@/features/debts/params';
+import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import { cn } from '@/lib/utils';
 import type { Debt, DebtCategory, DebtListItem, DebtStatus, Priority } from '@/lib/types';
-import type { DebtQuery, DebtSort } from '@/lib/params';
+import type { DebtQuery, DebtSort } from '@/features/debts/params';
 import type { DebtsPage } from '@/lib/types';
 
 export function DebtsView({

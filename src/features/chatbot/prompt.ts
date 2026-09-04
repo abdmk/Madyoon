@@ -1,5 +1,5 @@
 import { DEBT_CATEGORIES } from '@/lib/constants';
-import { formatAmount } from '@/lib/format';
+import { formatAmount } from '@/lib/formatters';
 import { summarizeDebts, sumExpenses } from '@/lib/stats';
 import type { Debt, Expense } from '@/lib/types';
 

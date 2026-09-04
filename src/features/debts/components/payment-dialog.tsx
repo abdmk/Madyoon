@@ -16,7 +16,7 @@ import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { formatAmount } from '@/lib/format';
+import { formatAmount } from '@/lib/formatters';
 import { PAYMENT_METHODS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import type { Debt, PaymentMethod } from '@/lib/types';

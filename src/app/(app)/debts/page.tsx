@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getProfile } from '@/lib/supabase/server';
-import { getDebtsPage } from '@/lib/data';
-import { parseDebtQuery, type SearchParams } from '@/lib/params';
-import { DebtsView } from '@/components/debts/debts-view';
+import { getDebtsPage } from '@/features/debts/api';
+import { parseDebtQuery } from '@/features/debts/params';
+import type { SearchParams } from '@/lib/params';
+import { DebtsView } from '@/features/debts/components/debts-view';
 
 export const metadata: Metadata = { title: 'الديون' };
 

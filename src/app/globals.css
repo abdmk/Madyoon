@@ -12,7 +12,7 @@
   :root {
     /* Surfaces: a barely-tinted page behind pure-white cards, so a card reads
        as raised without needing a heavy shadow. */
-    --background: 210 20% 98%;
+    --background: 220 23% 97%; /* #F7F8FA */
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -21,7 +21,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;
+    --primary: 223 100% 59%; /* #2F6BFF */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -42,9 +42,38 @@
     --warning: 32 95% 44%;
     --warning-foreground: 0 0% 100%;
 
+    --info: 199 89% 46%;
+    --info-foreground: 0 0% 100%;
+
+    /* Soft semantic surfaces.
+       A tint the eye reads as "this is a state", not "this is decorated".
+       Paired with a -soft-foreground that keeps AA contrast on that tint —
+       which a flat `bg-x/10 text-x` cannot promise once the theme flips, since
+       a 10% wash over a near-black page is nearly invisible. */
+    --primary-soft: 223 100% 96%;
+    --primary-soft-foreground: 223 83% 44%;
+
+    --success-soft: 158 55% 94%;
+    --success-soft-foreground: 158 70% 27%;
+
+    --warning-soft: 32 100% 94%;
+    --warning-soft-foreground: 27 90% 34%;
+
+    --destructive-soft: 0 86% 96%;
+    --destructive-soft-foreground: 0 70% 43%;
+
+    --accent-soft: 258 100% 96%;
+    --accent-soft-foreground: 258 70% 50%;
+
+    --info-soft: 199 95% 94%;
+    --info-soft-foreground: 199 90% 32%;
+
+    --neutral-soft: 220 16% 95%;
+    --neutral-soft-foreground: 220 12% 38%;
+
     --border: 220 13% 91%;
     --input: 220 13% 88%;
-    --ring: 221 83% 53%;
+    --ring: 223 100% 59%;
 
     --radius: 0.75rem;
 
@@ -66,7 +95,7 @@
     --popover: 220 33% 12%;
     --popover-foreground: 210 20% 96%;
 
-    --primary: 217 91% 62%;
+    --primary: 223 100% 68%;
     --primary-foreground: 222 47% 8%;
 
     --secondary: 218 24% 17%;
@@ -88,10 +117,36 @@
     --warning: 38 92% 58%;
     --warning-foreground: 222 47% 8%;
 
+    --info: 199 89% 58%;
+    --info-foreground: 222 47% 8%;
+
+    /* Soft surfaces are *raised tints* in the dark theme, not washes — a
+       percentage of the accent over a near-black page reads as noise. */
+    --primary-soft: 223 45% 22%;
+    --primary-soft-foreground: 223 100% 82%;
+
+    --success-soft: 158 35% 19%;
+    --success-soft-foreground: 158 65% 68%;
+
+    --warning-soft: 32 45% 20%;
+    --warning-soft-foreground: 38 95% 70%;
+
+    --destructive-soft: 0 40% 23%;
+    --destructive-soft-foreground: 0 90% 78%;
+
+    --accent-soft: 258 40% 25%;
+    --accent-soft-foreground: 258 95% 82%;
+
+    --info-soft: 199 45% 20%;
+    --info-soft-foreground: 199 90% 72%;
+
+    --neutral-soft: 218 22% 20%;
+    --neutral-soft-foreground: 215 18% 74%;
+
     /* Visible borders are what keep a dark UI from turning into a blur. */
     --border: 217 24% 22%;
     --input: 217 24% 26%;
-    --ring: 217 91% 62%;
+    --ring: 223 100% 68%;
 
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.4);

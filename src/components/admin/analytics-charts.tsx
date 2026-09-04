@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatAmount, formatNumber } from '@/lib/format';
+import { formatAmount, formatNumber } from '@/lib/formatters';
 
 export interface AnalyticsChartPoint {
   label: string;

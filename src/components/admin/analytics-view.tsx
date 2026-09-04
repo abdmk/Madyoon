@@ -4,11 +4,11 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { BarChart3, CheckCircle2, Receipt, UserPlus, Wallet } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-import { EmptyState } from '@/components/shared/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { StatCard } from '@/components/shared/stat-card';
 import { Skeleton } from '@/components/ui/misc';
 import { useSession } from '@/components/session-provider';
-import { formatAmount, formatCompactAmount, formatNumber } from '@/lib/format';
+import { formatAmount, formatCompactAmount, formatNumber } from '@/lib/formatters';
 import type { AnalyticsPoint } from '@/lib/types';
 
 // Recharts is the heaviest dependency this page pulls in — split into its own

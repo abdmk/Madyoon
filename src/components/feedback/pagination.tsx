@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatNumber } from '@/lib/format';
+import { formatNumber } from '@/lib/formatters';
 
 /**
  * Page controls for a server-paged list. It never slices anything — it only

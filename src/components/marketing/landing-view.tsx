@@ -17,7 +17,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/misc';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { formatAmount, formatCompactAmount } from '@/lib/format';
+import { formatAmount, formatCompactAmount } from '@/lib/formatters';
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
 
 const FEATURES = [

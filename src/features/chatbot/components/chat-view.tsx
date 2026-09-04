@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/misc';
 import { useSession } from '@/components/session-provider';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { initials } from '@/lib/format';
+import { initials } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, Conversation, Profile } from '@/lib/types';
 

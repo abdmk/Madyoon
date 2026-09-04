@@ -40,9 +40,32 @@ const config: Config = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+        },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+        },
+        /* Soft state surfaces — `bg-soft-success text-soft-success-foreground`
+           reads as a state everywhere, and stays legible in both themes
+           because each half is a real token rather than an opacity guess. */
+        soft: {
+          primary: 'hsl(var(--primary-soft))',
+          'primary-foreground': 'hsl(var(--primary-soft-foreground))',
+          success: 'hsl(var(--success-soft))',
+          'success-foreground': 'hsl(var(--success-soft-foreground))',
+          warning: 'hsl(var(--warning-soft))',
+          'warning-foreground': 'hsl(var(--warning-soft-foreground))',
+          danger: 'hsl(var(--destructive-soft))',
+          'danger-foreground': 'hsl(var(--destructive-soft-foreground))',
+          accent: 'hsl(var(--accent-soft))',
+          'accent-foreground': 'hsl(var(--accent-soft-foreground))',
+          info: 'hsl(var(--info-soft))',
+          'info-foreground': 'hsl(var(--info-soft-foreground))',
+          neutral: 'hsl(var(--neutral-soft))',
+          'neutral-foreground': 'hsl(var(--neutral-soft-foreground))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',

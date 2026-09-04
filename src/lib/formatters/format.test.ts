@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCompactAmount } from './format';
+import { formatCompactAmount } from './index';
 
 describe('formatCompactAmount', () => {
   it('shows small amounts in full', () => {

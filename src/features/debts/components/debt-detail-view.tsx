@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
-import { EmptyState } from '@/components/shared/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +43,7 @@ import { DebtFormDialog } from './debt-form-dialog';
 import { PaymentDialog } from './payment-dialog';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { DEBT_CATEGORIES, DEBT_STATUS, PAYMENT_METHODS, PRIORITIES } from '@/lib/constants';
-import { dueInfo, formatAmount, formatCompactAmount, formatDate, formatDateTime, formatPercent } from '@/lib/format';
+import { dueInfo, formatAmount, formatCompactAmount, formatDate, formatDateTime, formatPercent } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { DebtDetail, PaymentMethod } from '@/lib/types';
 

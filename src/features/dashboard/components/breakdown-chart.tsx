@@ -4,9 +4,9 @@ import * as React from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/shared/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { DEBT_CATEGORIES } from '@/lib/constants';
-import { formatAmount, formatPercent } from '@/lib/format';
+import { formatAmount, formatPercent } from '@/lib/formatters';
 
 export interface BreakdownSlice {
   key: string;

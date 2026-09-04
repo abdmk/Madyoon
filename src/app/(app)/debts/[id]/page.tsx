@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getProfile } from '@/lib/supabase/server';
-import { getDebtDetail } from '@/lib/data';
-import { DebtDetailView } from '@/components/debts/debt-detail-view';
+import { getDebtDetail } from '@/features/debts/api';
+import { DebtDetailView } from '@/features/debts/components/debt-detail-view';
 
 export async function generateMetadata({
   params,

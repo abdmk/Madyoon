@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { createClient, getProfile } from '@/lib/supabase/server';
-import { ChatView } from '@/components/chatbot/chat-view';
+import { ChatView } from '@/features/chatbot/components/chat-view';
 import type { Conversation } from '@/lib/types';
 
 export const metadata: Metadata = { title: 'المساعد الذكي' };

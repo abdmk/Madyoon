@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import { getProfile } from '@/lib/supabase/server';
-import { getDueAlerts } from '@/lib/data';
+import { getDueAlerts } from '@/features/dashboard/api';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { AlertsBellServer } from '@/components/layout/alerts-bell-server';
-import { MobileNav } from '@/components/layout/mobile-nav';
+import { MobileNav } from '@/components/navigation/mobile-nav';
 import { SessionProvider } from '@/components/session-provider';
 
 // Every page under this layout renders one signed-in account's data. Force

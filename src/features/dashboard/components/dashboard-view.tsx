@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
-import { EmptyState } from '@/components/shared/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress, Skeleton } from '@/components/ui/misc';
 import { FinancialOverview } from './financial-overview';
-import { dueInfo, formatAmount, formatCompactAmount, formatDate, formatPercent } from '@/lib/format';
+import { dueInfo, formatAmount, formatCompactAmount, formatDate, formatPercent } from '@/lib/formatters';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import type { DashboardData, DashboardPeriodSummary } from '@/lib/types';

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { Download, Search, ShieldCheck, User as UserIcon, Users, X } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-import { EmptyState } from '@/components/shared/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useSession } from '@/components/session-provider';
-import { formatAmount, formatDate, initials } from '@/lib/format';
+import { formatAmount, formatDate, initials } from '@/lib/formatters';
 import { downloadCsv, timestampedName } from '@/lib/export';
 import type { AdminUserRow, Role } from '@/lib/types';
 

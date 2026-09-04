@@ -81,7 +81,21 @@ export interface Expense {
  * What the debts list actually renders. `notes`, `user_id` and the timestamps
  * are left in Postgres until a row is opened — see `getDebtDetail`.
  */
-export type DebtListItem = Omit<Debt, 'user_id' | 'notes' | 'created_at' | 'updated_at'>;
+export type DebtListItem = Omit<Debt, 'user_id' | 'notes' | 'created_at' | 'updated_at'> & {
+  /**
+   * Latest `debt_payments.paid_at` for this debt, resolved inside `list_debts`
+   * so a list of 20 rows is still one round trip. Null when nothing was ever
+   * paid against it.
+   */
+  last_payment_at?: string | null;
+};
+
+/**
+ * What the list actually shows as a status. `overdue` is derived — the stored
+ * status stays pending/partial/paid, maintained by the payment trigger — so
+ * this never drifts from the database.
+ */
+export type DebtDisplayStatus = 'paid' | 'overdue' | 'partial' | 'pending';
 
 /** What the expenses list renders. */
 export type ExpenseListItem = Omit<
@@ -285,4 +299,121 @@ export interface AnalyticsPoint {
   paid_total: number;
   expenses_total: number;
   new_users: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Attention feed — what the dashboard asks you to act on                      */
+/* -------------------------------------------------------------------------- */
+
+export interface AttentionDebt {
+  id: string;
+  creditor_name: string;
+  remaining_amount: number;
+  currency: string;
+  due_date: string;
+  status: DebtStatus;
+  priority: Priority;
+  /** Present on overdue rows only. */
+  days_late?: number;
+  /** Present on due-soon rows only. */
+  days_left?: number;
+}
+
+export interface AttentionPayment {
+  id: string;
+  debt_id: string;
+  amount: number;
+  method: PaymentMethod;
+  paid_at: string;
+  created_at: string;
+  creditor_name: string;
+  currency: string;
+  remaining_amount: number;
+}
+
+export interface AttentionFeed {
+  overdue: AttentionDebt[];
+  dueSoon: AttentionDebt[];
+  recentPayments: AttentionPayment[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Creditor detail — derived from debts.creditor_name (no customers table)     */
+/* -------------------------------------------------------------------------- */
+
+export interface CreditorSummary {
+  total: number;
+  paid: number;
+  remaining: number;
+  count: number;
+  settled: number;
+  active: number;
+  overdue: number;
+  overdueAmount: number;
+  currency: string | null;
+  firstDebtAt: string | null;
+  lastDebtAt: string | null;
+}
+
+export interface CreditorPayment {
+  id: string;
+  debt_id: string;
+  amount: number;
+  method: PaymentMethod;
+  paid_at: string;
+  note: string | null;
+  created_at: string;
+  currency: string;
+}
+
+export interface CreditorDetail {
+  name: string;
+  phone: string | null;
+  summary: CreditorSummary;
+  debts: DebtListItem[];
+  payments: CreditorPayment[];
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reports                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export interface CashflowPoint {
+  month: string;
+  revenues: number;
+  expenses: number;
+  collected: number;
+  newDebt: number;
+}
+
+export interface AgingBuckets {
+  current: number;
+  days1_30: number;
+  days31_60: number;
+  days61_90: number;
+  over90: number;
+  undated: number;
+}
+
+export interface TopCreditor {
+  name: string;
+  remaining: number;
+  debts: number;
+  overdue: number;
+  currency: string;
+}
+
+export interface PeriodTotals {
+  revenues: number;
+  expenses: number;
+  collected: number;
+}
+
+export interface ReportsSummary {
+  cashflow: CashflowPoint[];
+  collection: { billed: number; collected: number; outstanding: number };
+  aging: AgingBuckets;
+  topCreditors: TopCreditor[];
+  expenseCategories: ExpenseCategoryTotal[];
+  comparison: { thisMonth: PeriodTotals; lastMonth: PeriodTotals };
 }

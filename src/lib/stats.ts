@@ -1,4 +1,4 @@
-import { dueInfo } from './format';
+import { dueInfo } from '@/lib/formatters';
 import type { Debt, Expense } from './types';
 
 /**

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getProfile } from '@/lib/supabase/server';
-import { getDashboard, getDashboardPeriodSummary } from '@/lib/data';
-import { DashboardView } from '@/components/dashboard/dashboard-view';
+import { getDashboard, getDashboardPeriodSummary, getAttentionFeed } from '@/features/dashboard/api';
+import { DashboardView } from '@/features/dashboard/components/dashboard-view';
 
 export const metadata: Metadata = { title: 'الرئيسية' };
 

@@ -13,8 +13,8 @@ import {
   YAxis,
 } from 'recharts';
 import { LineChart as LineIcon } from 'lucide-react';
-import { EmptyState } from '@/components/shared/empty-state';
-import { formatAmount, formatNumber } from '@/lib/format';
+import { EmptyState } from '@/components/feedback/empty-state';
+import { formatAmount, formatNumber } from '@/lib/formatters';
 import type { DashboardPeriod, DashboardPeriodPoint } from '@/lib/types';
 
 const SERIES = [

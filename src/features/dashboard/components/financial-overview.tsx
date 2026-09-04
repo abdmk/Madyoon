@@ -6,7 +6,7 @@ import { Banknote, Receipt, Scale, Wallet2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, Skeleton } from '@/components/ui/misc';
 import { StatCard } from '@/components/shared/stat-card';
-import { formatAmount, formatCompactAmount } from '@/lib/format';
+import { formatAmount, formatCompactAmount } from '@/lib/formatters';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { DashboardPeriod, DashboardPeriodSummary } from '@/lib/types';

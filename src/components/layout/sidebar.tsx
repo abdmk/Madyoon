@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
-import { ADMIN_NAV, MAIN_NAV, isActive, type NavItem } from './nav-items';
+import { ADMIN_NAV, MAIN_NAV, isActive, type NavItem } from '@/components/navigation/nav-items';
 import { useAppStore } from '@/store/use-app-store';
 import { Button } from '@/components/ui/button';
 import type { Profile } from '@/lib/types';

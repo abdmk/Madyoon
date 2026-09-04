@@ -4,7 +4,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { Download, ScrollText, Search, X } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-import { EmptyState } from '@/components/shared/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/misc';
 import { AUDIT_ACTIONS } from '@/lib/constants';
-import { formatDateTime, initials } from '@/lib/format';
+import { formatDateTime, initials } from '@/lib/formatters';
 import { downloadCsv, timestampedName } from '@/lib/export';
 import type { AuditLog } from '@/lib/types';
 

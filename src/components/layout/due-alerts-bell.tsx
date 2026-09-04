@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { dueInfo, formatAmount, formatDate } from '@/lib/format';
+import { dueInfo, formatAmount, formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { DueAlerts } from '@/lib/types';
 

@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO } from 'date-fns';
-import { CURRENCIES, DUE_SOON_DAYS } from './constants';
-import type { Debt } from './types';
+import { CURRENCIES, DUE_SOON_DAYS } from '@/lib/constants';
+import type { Debt } from '@/lib/types';
 
 export function currencySymbol(code: string) {
   return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { getSiteUrl } from '@/lib/site-url';
+import { getSiteUrl } from '@/lib/auth/site-url';
 
 const HIGHLIGHTS = [
   { icon: BarChart3, text: 'تتبّع ديونك ومصاريفك في مكان واحد' },

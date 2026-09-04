@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -60,11 +61,13 @@ export function SidebarContent({
   return (
     <div className="flex h-full flex-col gap-6 p-4">
       <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-3 px-1">
-        <img
+        <Image
           src="/icon.svg"
           alt=""
           aria-hidden
-          className="size-10 shrink-0 rounded-xl shadow-md shadow-primary/25"
+          width={40}
+          height={40}
+          className="shrink-0 rounded-xl shadow-md shadow-primary/25"
         />
         <span className="min-w-0">
           <span className="block truncate font-display text-base font-semibold">{APP_NAME}</span>

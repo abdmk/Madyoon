@@ -331,7 +331,7 @@ export function RevenuesView({
                         className="flex items-center gap-3 p-3 transition-colors duration-fast hover:bg-muted/30 sm:p-4"
                       >
                         <span
-                          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-lg"
                           style={{ backgroundColor: `${cat.color}1a` }}
                           aria-hidden
                         >

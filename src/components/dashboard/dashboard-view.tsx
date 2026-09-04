@@ -209,7 +209,7 @@ export function DashboardView({
                         className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors duration-fast hover:bg-muted/40"
                       >
                         <span
-                          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-full"
                           style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
                           aria-hidden
                         >
@@ -220,7 +220,6 @@ export function DashboardView({
                           <div className="flex items-center gap-2">
                             <p className="truncate text-sm font-medium">{debt.creditor_name}</p>
                             <Badge
-                              variant="outline"
                               className={cn('shrink-0', PRIORITIES[debt.priority].className)}
                             >
                               {PRIORITIES[debt.priority].label}
@@ -245,7 +244,6 @@ export function DashboardView({
                             {formatAmount(debt.remaining_amount, debt.currency)}
                           </p>
                           <Badge
-                            variant="outline"
                             className={cn('mt-1', DEBT_STATUS[debt.status].className)}
                           >
                             {DEBT_STATUS[debt.status].label}

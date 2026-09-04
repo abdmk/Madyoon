@@ -399,7 +399,6 @@ export function DebtsView({
                               </Link>
                               <div className="mt-0.5 flex items-center gap-1.5">
                                 <Badge
-                                  variant="outline"
                                   className={PRIORITIES[debt.priority].className}
                                 >
                                   {PRIORITIES[debt.priority].label}
@@ -435,7 +434,7 @@ export function DebtsView({
                           ) : null}
                         </td>
                         <td className="p-3">
-                          <Badge variant="outline" className={DEBT_STATUS[debt.status].className}>
+                          <Badge className={DEBT_STATUS[debt.status].className}>
                             {DEBT_STATUS[debt.status].label}
                           </Badge>
                         </td>
@@ -568,7 +567,7 @@ function DebtCard({
     >
       <div className="flex items-start gap-3">
         <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full"
           style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
           aria-hidden
         >
@@ -592,7 +591,7 @@ function DebtCard({
               </p>
             </div>
             <div className="text-end">
-              <Badge variant="outline" className={DEBT_STATUS[debt.status].className}>
+              <Badge className={DEBT_STATUS[debt.status].className}>
                 {DEBT_STATUS[debt.status].label}
               </Badge>
               {due.state !== 'none' ? (

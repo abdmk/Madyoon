@@ -2,18 +2,21 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
+// Soft-tint pill chips — a colored background, matching colored text, no
+// border. One consistent shape (fully rounded) everywhere a badge appears,
+// from dense list rows to a standalone metadata chip row.
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium transition-colors',
+  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        outline: 'text-foreground',
-        soft: 'border-border bg-muted text-muted-foreground',
-        success: 'border-success/25 bg-success/10 text-success',
-        warning: 'border-warning/25 bg-warning/10 text-warning',
-        destructive: 'border-destructive/25 bg-destructive/10 text-destructive',
+        default: 'bg-primary text-primary-foreground',
+        secondary: 'bg-secondary text-secondary-foreground',
+        outline: 'border border-border text-foreground',
+        soft: 'bg-muted text-muted-foreground',
+        success: 'bg-success/10 text-success',
+        warning: 'bg-warning/10 text-warning',
+        destructive: 'bg-destructive/10 text-destructive',
       },
     },
     defaultVariants: { variant: 'default' },

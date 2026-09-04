@@ -25,15 +25,15 @@ import type { AuditLog } from '@/lib/types';
 /** Colour by the verb at the end of the action, e.g. `debt.delete`. */
 function toneFor(action: string) {
   if (action.endsWith('.delete') || action.endsWith('.revoke')) {
-    return 'border-destructive/25 bg-destructive/10 text-destructive';
+    return 'bg-destructive/10 text-destructive';
   }
   if (action.endsWith('.create') || action.endsWith('.accept')) {
-    return 'border-success/25 bg-success/10 text-success';
+    return 'bg-success/10 text-success';
   }
   if (action.startsWith('admin.')) {
-    return 'border-accent/25 bg-accent/10 text-accent';
+    return 'bg-accent/10 text-accent';
   }
-  return 'border-primary/25 bg-primary/10 text-primary';
+  return 'bg-primary/10 text-primary';
 }
 
 export function AuditLogsView({ initialLogs }: { initialLogs: AuditLog[] }) {
@@ -176,7 +176,7 @@ export function AuditLogsView({ initialLogs }: { initialLogs: AuditLog[] }) {
                 {filtered.map((log) => (
                   <tr key={log.id} className="transition-colors hover:bg-muted/30">
                     <td className="p-3">
-                      <Badge variant="outline" className={toneFor(log.action)}>
+                      <Badge className={toneFor(log.action)}>
                         {AUDIT_ACTIONS[log.action] ?? log.action}
                       </Badge>
                     </td>

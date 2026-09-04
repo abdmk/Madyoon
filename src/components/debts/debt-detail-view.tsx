@@ -11,6 +11,8 @@ import {
   CalendarClock,
   CalendarDays,
   CheckCircle2,
+  Circle,
+  Clock,
   Flag,
   Landmark,
   Pencil,
@@ -49,6 +51,12 @@ const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
   cash: Banknote,
   transfer: Landmark,
 };
+
+const STATUS_ICON = {
+  paid: CheckCircle2,
+  partial: Clock,
+  pending: Circle,
+} as const;
 
 /**
  * The full page for a single debt. Everything here is already resolved on the
@@ -104,7 +112,7 @@ export function DebtDetailView({ detail }: { detail: DebtDetail }) {
         title={
           <span className="flex items-center gap-3">
             <span
-              className="flex size-11 shrink-0 items-center justify-center rounded-xl"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full"
               style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
               aria-hidden
             >
@@ -135,21 +143,51 @@ export function DebtDetailView({ detail }: { detail: DebtDetail }) {
         </Button>
       </PageHeader>
 
+      {/* Metadata chips — one soft-tinted pill per fact, icon leading. */}
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="outline" className={DEBT_STATUS[debt.status].className}>
-          {DEBT_STATUS[debt.status].label}
-        </Badge>
-        <Badge variant="outline" className={PRIORITIES[debt.priority].className}>
+        {(() => {
+          const StatusIcon = STATUS_ICON[debt.status];
+          return (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium',
+                DEBT_STATUS[debt.status].className,
+              )}
+            >
+              <StatusIcon className="size-4" />
+              {DEBT_STATUS[debt.status].label}
+            </span>
+          );
+        })()}
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium',
+            PRIORITIES[debt.priority].className,
+          )}
+        >
+          <Flag className="size-4" />
           {PRIORITIES[debt.priority].label}
-        </Badge>
-        <Badge variant="soft">{cat.label}</Badge>
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+          style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}
+        >
+          <CatIcon className="size-4" />
+          {cat.label}
+        </span>
+        {debt.due_date ? (
+          <span className={cn('inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm font-medium', due.className)}>
+            <CalendarClock className="size-4" />
+            {formatDate(debt.due_date)}
+          </span>
+        ) : null}
         {debt.phone ? (
           <a
             href={`tel:${debt.phone}`}
-            className="flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium tabular transition-colors hover:bg-secondary"
+            className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium tabular text-secondary-foreground transition-colors hover:bg-secondary/70"
             dir="ltr"
           >
-            <Phone className="size-3" />
+            <Phone className="size-4" />
             {debt.phone}
           </a>
         ) : null}
@@ -260,7 +298,7 @@ export function DebtDetailView({ detail }: { detail: DebtDetail }) {
               </DetailRow>
 
               <DetailRow icon={Flag} label="الأولوية">
-                <Badge variant="outline" className={PRIORITIES[debt.priority].className}>
+                <Badge className={PRIORITIES[debt.priority].className}>
                   {PRIORITIES[debt.priority].label}
                 </Badge>
               </DetailRow>

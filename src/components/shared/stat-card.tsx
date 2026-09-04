@@ -59,7 +59,7 @@ export function StatCard({
         {Icon ? (
           <span
             className={cn(
-              'flex size-9 shrink-0 items-center justify-center rounded-lg',
+              'flex size-9 shrink-0 items-center justify-center rounded-full',
               TONES[tone],
             )}
             aria-hidden

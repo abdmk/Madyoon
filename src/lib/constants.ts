@@ -41,37 +41,37 @@ export const PRIORITIES: Record<
   critical: {
     label: 'حرجة',
     weight: 4,
-    className: 'bg-destructive/10 text-destructive border-destructive/25',
+    className: 'bg-destructive/10 text-destructive',
   },
   high: {
     label: 'عالية',
     weight: 3,
-    className: 'bg-warning/10 text-warning border-warning/25',
+    className: 'bg-warning/10 text-warning',
   },
   medium: {
     label: 'متوسطة',
     weight: 2,
-    className: 'bg-primary/10 text-primary border-primary/25',
+    className: 'bg-primary/10 text-primary',
   },
   low: {
     label: 'منخفضة',
     weight: 1,
-    className: 'bg-muted text-muted-foreground border-border',
+    className: 'bg-muted text-muted-foreground',
   },
 };
 
 export const DEBT_STATUS: Record<DebtStatus, { label: string; className: string }> = {
   paid: {
     label: 'مسدد',
-    className: 'bg-success/10 text-success border-success/25',
+    className: 'bg-success/10 text-success',
   },
   partial: {
     label: 'سداد جزئي',
-    className: 'bg-warning/10 text-warning border-warning/25',
+    className: 'bg-warning/10 text-warning',
   },
   pending: {
     label: 'قيد السداد',
-    className: 'bg-primary/10 text-primary border-primary/25',
+    className: 'bg-primary/10 text-primary',
   },
 };
 

@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/misc';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useSession } from '@/components/session-provider';
 import { formatAmount, formatDate, initials } from '@/lib/formatters';
+import { roleLabel } from '@/lib/permissions';
 import { downloadCsv, timestampedName } from '@/lib/export';
 import type { AdminUserRow, Role } from '@/lib/types';
 
@@ -89,7 +90,7 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminUserRow[] }) {
     downloadCsv(timestampedName('madyoon-users'), filtered, [
       { header: 'الاسم', value: (u) => u.name },
       { header: 'البريد', value: (u) => u.email ?? '' },
-      { header: 'الصلاحية', value: (u) => (u.role === 'admin' ? 'مدير' : 'مستخدم') },
+      { header: 'الصلاحية', value: (u) => roleLabel(u.role) },
       { header: 'عدد الديون', value: (u) => u.debts_count },
       { header: 'إجمالي الديون', value: (u) => u.total_amount },
       { header: 'المسدد', value: (u) => u.paid_amount },
@@ -171,12 +172,12 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminUserRow[] }) {
             <table className="w-full text-sm">
               <thead className="border-b bg-muted/40">
                 <tr>
-                  <th className="p-3 text-start font-medium">المستخدم</th>
-                  <th className="p-3 text-start font-medium">الصلاحية</th>
-                  <th className="p-3 text-start font-medium">الديون</th>
-                  <th className="p-3 text-start font-medium">المتبقي</th>
-                  <th className="p-3 text-start font-medium">المصاريف</th>
-                  <th className="p-3 text-start font-medium">التسجيل</th>
+                  <th scope="col" className="p-3 text-start font-medium">المستخدم</th>
+                  <th scope="col" className="p-3 text-start font-medium">الصلاحية</th>
+                  <th scope="col" className="p-3 text-start font-medium">الديون</th>
+                  <th scope="col" className="p-3 text-start font-medium">المتبقي</th>
+                  <th scope="col" className="p-3 text-start font-medium">المصاريف</th>
+                  <th scope="col" className="p-3 text-start font-medium">التسجيل</th>
                 </tr>
               </thead>
               <tbody className="divide-y">

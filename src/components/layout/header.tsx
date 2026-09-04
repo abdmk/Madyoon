@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/store/use-app-store';
 import { initials } from '@/lib/formatters';
+import { canSeeAdminArea } from '@/lib/permissions';
 import type { Profile } from '@/lib/types';
 
 export function Header({
@@ -69,7 +70,7 @@ export function Header({
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {profile.role === 'admin' ? (
+          {canSeeAdminArea(profile) ? (
             <DropdownMenuItem asChild>
               <Link href="/admin">
                 <ShieldCheck />

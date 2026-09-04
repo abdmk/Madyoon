@@ -8,6 +8,7 @@ import { Pill } from '@/components/ui/pill';
 import { Progress, Skeleton } from '@/components/ui/misc';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
 import { formatAmount, formatCompactAmount, formatPercent } from '@/lib/formatters';
+import { pctChange, sumBy } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 import type { ReportsSummary } from '@/lib/types';
 
@@ -42,11 +43,6 @@ function Insight({ children, tone = 'neutral' }: { children: React.ReactNode; to
   );
 }
 
-function pctChange(now: number, before: number) {
-  if (before <= 0) return now > 0 ? 100 : 0;
-  return ((now - before) / before) * 100;
-}
-
 export function ReportsView({
   data,
   currency,
@@ -58,8 +54,8 @@ export function ReportsView({
 }) {
   const { cashflow, collection, aging, topCreditors, expenseCategories, comparison } = data;
 
-  const totalIn = cashflow.reduce((sum, p) => sum + Number(p.revenues), 0);
-  const totalOut = cashflow.reduce((sum, p) => sum + Number(p.expenses), 0);
+  const totalIn = sumBy(cashflow, (p) => p.revenues);
+  const totalOut = sumBy(cashflow, (p) => p.expenses);
   const net = totalIn - totalOut;
 
   const collectionRate =
@@ -85,7 +81,7 @@ export function ReportsView({
   const expChange = pctChange(Number(comparison.thisMonth.expenses), Number(comparison.lastMonth.expenses));
   const colChange = pctChange(Number(comparison.thisMonth.collected), Number(comparison.lastMonth.collected));
 
-  const expenseTotal = expenseCategories.reduce((sum, c) => sum + Number(c.total), 0);
+  const expenseTotal = sumBy(expenseCategories, (c) => c.total);
   const hasAnything =
     totalIn > 0 || totalOut > 0 || agingTotal > 0 || Number(collection.collected) > 0;
 

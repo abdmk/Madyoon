@@ -5,13 +5,13 @@ import { toast } from 'sonner';
 import { Banknote, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/misc';
@@ -33,7 +33,16 @@ const METHOD_ICONS: Record<PaymentMethod, typeof Banknote> = {
   transfer: Landmark,
 };
 
-/** Records a payment against a debt: logs it in `debt_payments`, raises `paid_amount`. */
+/**
+ * Records a payment against a debt: logs it in `debt_payments`, raises
+ * `paid_amount` (the trigger recomputes `status`).
+ *
+ * Presented as a responsive sheet — a bottom sheet on a phone, where this is
+ * the single most frequent thing anyone does in the app, and a centred modal
+ * on a desktop. The running "remaining after this payment" figure updates as
+ * you type, and the confirmation repeats it, because the question behind
+ * every payment is "what do I still owe them".
+ */
 export function PaymentDialog({
   debt,
   open,
@@ -95,23 +104,34 @@ export function PaymentDialog({
     const updated = data as Debt;
     onPaid?.(updated);
 
+    // The confirmation carries the new balance: the point of recording a
+    // payment is knowing what is left afterwards.
     toast.success(
       updated.status === 'paid'
         ? 'تم سداد الدين بالكامل 🎉'
         : `تم تسجيل دفعة ${formatAmount(amount, debt.currency)}`,
+      {
+        description:
+          updated.status === 'paid'
+            ? `${debt.creditor_name} — لم يبقَ شيء.`
+            : `${debt.creditor_name} — المتبقي الآن ${formatAmount(
+                updated.remaining_amount,
+                debt.currency,
+              )}`,
+      },
     );
     onOpenChange(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>تسجيل دفعة</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>تسجيل دفعة</SheetTitle>
+          <SheetDescription>
             {debt.creditor_name} — المتبقي {formatAmount(remaining, debt.currency)}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-2">
@@ -125,10 +145,12 @@ export function PaymentDialog({
               step="any"
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              aria-invalid={!!value && !valid}
+              aria-describedby={value && !valid ? 'payment-error' : undefined}
               autoFocus
             />
             {value && !valid ? (
-              <p className="text-xs text-destructive">
+              <p id="payment-error" role="alert" className="text-xs text-destructive">
                 أدخل مبلغاً بين ١ و {formatAmount(remaining, debt.currency)}
               </p>
             ) : null}
@@ -143,6 +165,11 @@ export function PaymentDialog({
                 size="sm"
                 className="flex-1"
                 onClick={() => setValue(String(Math.round(remaining * ratio * 100) / 100))}
+                aria-label={
+                  ratio === 1
+                    ? 'دفع المتبقي كاملاً'
+                    : `دفع ${ratio * 100}٪ من المتبقي`
+                }
               >
                 {ratio === 1 ? 'المتبقي كامل' : `${ratio * 100}%`}
               </Button>
@@ -158,6 +185,8 @@ export function PaymentDialog({
                 value={paidAt}
                 onChange={(e) => setPaidAt(e.target.value)}
                 max={todayIso()}
+                className="[unicode-bidi:isolate]"
+                dir="ltr"
                 required
               />
             </div>
@@ -202,7 +231,7 @@ export function PaymentDialog({
             />
           </div>
 
-          <div className="rounded-lg border bg-muted/40 p-3">
+          <div className="rounded-lg border bg-muted/40 p-3" aria-live="polite">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">المتبقي بعد الدفع</span>
               <span className="font-medium tabular">{formatAmount(after, debt.currency)}</span>
@@ -214,16 +243,16 @@ export function PaymentDialog({
             />
           </div>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="submit" variant="success" loading={saving} disabled={!valid}>
               تأكيد الدفعة
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               إلغاء
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

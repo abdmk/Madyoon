@@ -34,6 +34,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useSession } from '@/components/session-provider';
 import { CURRENCIES } from '@/lib/constants';
 import { formatDate, generateInviteCode, initials } from '@/lib/formatters';
+import { roleLabel } from '@/lib/permissions';
 import type { Profile, SharedAccountView, SharePermission } from '@/lib/types';
 
 export function SettingsView({
@@ -142,7 +143,7 @@ function ProfileCard({
           <div className="min-w-0">
             <p className="truncate font-medium">{profile.email}</p>
             <Badge variant="soft" className="mt-1">
-              {profile.role === 'admin' ? 'مدير النظام' : 'مستخدم'}
+              {roleLabel(profile.role)}
             </Badge>
           </div>
         </div>

@@ -53,7 +53,11 @@ export function FinancialChart({
   }
 
   return (
-    <div className="h-64 w-full sm:h-72">
+    <div
+      className="h-64 w-full sm:h-72"
+      role="img"
+      aria-label="رسم بياني للإيرادات والمصاريف والتحصيل خلال الفترة المحددة. الإجماليات مذكورة في البطاقات أعلاه."
+    >
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={series} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
           <defs>

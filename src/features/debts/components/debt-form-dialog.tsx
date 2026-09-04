@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -160,14 +160,14 @@ export function DebtFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>{debt ? 'تعديل الدين' : 'إضافة دين جديد'}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-xl">
+        <SheetHeader>
+          <SheetTitle>{debt ? 'تعديل الدين' : 'إضافة دين جديد'}</SheetTitle>
+          <SheetDescription>
             {debt ? 'حدّث تفاصيل الدين ثم احفظ.' : 'أدخل تفاصيل الدين لتتبّعه ومتابعة موعده.'}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <fieldset disabled={loading} className="space-y-4 disabled:opacity-60">
@@ -328,16 +328,16 @@ export function DebtFormDialog({
           </div>
           </fieldset>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="submit" loading={saving || loading}>
               {debt ? 'حفظ التعديلات' : 'إضافة الدين'}
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               إلغاء
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -51,7 +51,9 @@ export function DebtsBreakdownChart({
           />
         ) : (
           <div className="flex flex-col items-center gap-4 sm:flex-row">
-            <div className="h-48 w-full sm:w-48">
+            {/* The list beside it carries the same numbers in text, so the
+                donut is decoration as far as a screen reader is concerned. */}
+            <div className="h-48 w-full sm:w-48" aria-hidden>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

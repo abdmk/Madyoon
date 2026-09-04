@@ -1,11 +1,12 @@
 import { DEBT_CATEGORIES } from '@/lib/constants';
 import { formatAmount } from '@/lib/formatters';
 import { summarizeDebts, sumExpenses } from '@/lib/stats';
-import type { Debt, Expense } from '@/lib/types';
+import { sumBy } from '@/lib/analytics';
+import type { Debt, Expense, Revenue } from '@/lib/types';
 
 export const SYSTEM_PROMPT = `أنت "مساعد مديون" — مستشار مالي شخصي ودود يتحدث العربية الفصحى المبسّطة.
 
-مهمتك مساعدة المستخدم على فهم ديونه ومصاريفه ووضع خطة سداد واقعية.
+مهمتك مساعدة المستخدم على فهم ديونه ومصاريفه وإيراداته ووضع خطة سداد واقعية.
 
 كيف تعمل:
 - استخدم بيانات المستخدم المرفقة أدناه كمصدر للحقائق. لا تخترع أرقاماً غير موجودة فيها.
@@ -25,15 +26,25 @@ export const SYSTEM_PROMPT = `أنت "مساعد مديون" — مستشار م
 - أجب بإيجاز — فقرة أو فقرتان لسؤال بسيط. لا تُطل بلا داعٍ.`;
 
 /**
- * Compresses the user's debts and expenses into a compact factual block the
- * model can reason over, instead of streaming raw rows.
+ * Compresses the user's debts, expenses and revenues into a compact factual
+ * block the model can reason over, instead of streaming raw rows.
+ *
+ * Revenues matter here as much as the other two: a repayment plan that does
+ * not know what comes in each month is a guess.
  */
-export function buildContext(debts: Debt[], expenses: Expense[], currency: string) {
+export function buildContext(
+  debts: Debt[],
+  expenses: Expense[],
+  revenues: Revenue[],
+  currency: string,
+) {
   const summary = summarizeDebts(debts);
 
-  if (debts.length === 0 && expenses.length === 0) {
-    return 'المستخدم لم يُسجّل أي ديون أو مصاريف بعد. شجّعه على إضافة أول دين أو مصروف لتتمكّن من مساعدته بدقّة.';
+  if (debts.length === 0 && expenses.length === 0 && revenues.length === 0) {
+    return 'المستخدم لم يُسجّل أي ديون أو مصاريف أو إيرادات بعد. شجّعه على إضافة أول دين أو مصروف لتتمكّن من مساعدته بدقّة.';
   }
+
+  const month = new Date().toISOString().slice(0, 7);
 
   const lines: string[] = ['## بيانات المستخدم الحالية', ''];
 
@@ -69,7 +80,6 @@ export function buildContext(debts: Debt[], expenses: Expense[], currency: strin
   }
 
   if (expenses.length > 0) {
-    const month = new Date().toISOString().slice(0, 7);
     const monthly = expenses.filter((e) => e.date.startsWith(month));
 
     lines.push('### المصاريف');
@@ -87,6 +97,47 @@ export function buildContext(debts: Debt[], expenses: Expense[], currency: strin
         lines.push(`  - ${cat}: ${formatAmount(total, currency)}`);
       }
     }
+    lines.push('');
+  }
+
+  if (revenues.length > 0) {
+    const monthlyIn = revenues.filter((r) => r.date.startsWith(month));
+
+    lines.push('### الإيرادات');
+    lines.push(`- إجمالي المسجّل: ${formatAmount(sumBy(revenues, (r) => r.amount), currency)}`);
+    lines.push(
+      `- إيرادات الشهر الحالي: ${formatAmount(sumBy(monthlyIn, (r) => r.amount), currency)}`,
+    );
+
+    const bySource = new Map<string, number>();
+    for (const r of revenues) {
+      bySource.set(r.category, (bySource.get(r.category) ?? 0) + Number(r.amount));
+    }
+    const topIn = [...bySource.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (topIn.length > 0) {
+      lines.push('- أكبر مصادر الدخل:');
+      for (const [cat, total] of topIn) {
+        lines.push(`  - ${cat}: ${formatAmount(total, currency)}`);
+      }
+    }
+    lines.push('');
+  }
+
+  // What is actually left over each month, which is the number a repayment
+  // plan has to fit inside.
+  if (expenses.length > 0 || revenues.length > 0) {
+    const inThisMonth = sumBy(
+      revenues.filter((r) => r.date.startsWith(month)),
+      (r) => r.amount,
+    );
+    const outThisMonth = sumBy(
+      expenses.filter((e) => e.date.startsWith(month)),
+      (e) => e.amount,
+    );
+    lines.push('### صافي الشهر الحالي');
+    lines.push(`- الداخل: ${formatAmount(inThisMonth, currency)}`);
+    lines.push(`- الخارج: ${formatAmount(outThisMonth, currency)}`);
+    lines.push(`- الصافي: ${formatAmount(inThisMonth - outThisMonth, currency)}`);
     lines.push('');
   }
 

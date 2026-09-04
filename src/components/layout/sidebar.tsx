@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { canSeeAdminArea } from '@/lib/permissions';
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
 import { ADMIN_NAV, MAIN_NAV, isActive, type NavItem } from '@/components/navigation/nav-items';
 import { useAppStore } from '@/store/use-app-store';
@@ -77,7 +78,7 @@ export function SidebarContent({
           <NavLink key={item.href} item={item} onNavigate={onNavigate} />
         ))}
 
-        {profile.role === 'admin' ? (
+        {canSeeAdminArea(profile) ? (
           <>
             <p className="px-3 pb-1 pt-5 text-xs font-medium text-muted-foreground">الإدارة</p>
             {ADMIN_NAV.map((item) => (

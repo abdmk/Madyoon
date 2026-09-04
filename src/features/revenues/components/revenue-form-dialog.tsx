@@ -4,13 +4,13 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -140,12 +140,12 @@ export function RevenueFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{revenue ? 'تعديل الإيراد' : 'إضافة إيراد'}</DialogTitle>
-          <DialogDescription>سجّل مصادر دخلك لمتابعة صافي أموالك.</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>{revenue ? 'تعديل الإيراد' : 'إضافة إيراد'}</SheetTitle>
+          <SheetDescription>سجّل مصادر دخلك لمتابعة صافي أموالك.</SheetDescription>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <fieldset disabled={loading} className="space-y-4 disabled:opacity-60">
@@ -236,16 +236,16 @@ export function RevenueFormDialog({
             </div>
           </fieldset>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="submit" loading={saving || loading}>
               {revenue ? 'حفظ التعديلات' : 'إضافة الإيراد'}
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               إلغاء
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

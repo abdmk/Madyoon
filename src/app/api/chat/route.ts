@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SYSTEM_PROMPT, buildContext } from '@/features/chatbot/prompt';
-import type { ChatMessage, Debt, Expense, Profile } from '@/lib/types';
+import type { ChatMessage, Debt, Expense, Profile, Revenue } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -44,29 +44,43 @@ export async function POST(request: NextRequest) {
   }
 
   // Pull the user's own data server-side — never trust figures from the client.
-  const [{ data: profile }, { data: debts }, { data: expenses }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-    supabase
-      .from('debts')
-      .select('*')
-      .eq('user_id', user.id)
-      // Unpaid debts are what the assistant reasons about — they must survive
-      // the cap even on an account with hundreds of old, settled debts.
-      // ('pending' > 'partial' > 'paid' alphabetically, so descending puts
-      // unpaid statuses first.)
-      .order('status', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(300),
-    supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(300),
-  ]);
+  const [{ data: profile }, { data: debts }, { data: expenses }, { data: revenues }] =
+    await Promise.all([
+      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+      supabase
+        .from('debts')
+        .select('*')
+        .eq('user_id', user.id)
+        // Unpaid debts are what the assistant reasons about — they must
+        // survive the cap even on an account with hundreds of old, settled
+        // debts. ('pending' > 'partial' > 'paid' alphabetically, so
+        // descending puts unpaid statuses first.)
+        .order('status', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(300),
+      supabase
+        .from('expenses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(300),
+      // The assistant plans repayments, and a plan that doesn't know what
+      // comes in each month is a guess — so revenues come along too.
+      supabase
+        .from('revenues')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(300),
+    ]);
 
   const currency = (profile as Profile | null)?.currency ?? 'IQD';
-  const context = buildContext((debts as Debt[]) ?? [], (expenses as Expense[]) ?? [], currency);
+  const context = buildContext(
+    (debts as Debt[]) ?? [],
+    (expenses as Expense[]) ?? [],
+    (revenues as Revenue[]) ?? [],
+    currency,
+  );
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 

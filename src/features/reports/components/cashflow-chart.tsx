@@ -45,7 +45,11 @@ export function CashflowChart({
   );
 
   return (
-    <div className="h-64 w-full sm:h-72">
+    <div
+      className="h-64 w-full sm:h-72"
+      role="img"
+      aria-label="رسم بياني للتدفق النقدي: الإيرادات والمصاريف والمبالغ المحصّلة شهرياً. الأرقام مذكورة نصياً أسفل الرسم."
+    >
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={points} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
           <defs>

@@ -28,13 +28,27 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <SessionProvider profile={profile}>
       <div className="min-h-dvh">
+        {/* First thing in the tab order: every page here starts with the same
+            sidebar and header, so a keyboard user should be able to jump
+            straight past them to the content they came for. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+        >
+          تخطي إلى المحتوى
+        </a>
+
         <Sidebar profile={profile} />
 
         <div className="lg:ps-64">
           <Header profile={profile} alertsSlot={<AlertsBellServer promise={alertsPromise} />} />
           {/* Bottom padding clears the tab bar and the floating action, which
               are present below `lg` — the same breakpoint that hides them. */}
-          <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12 lg:pt-8">
+          <main
+            id="main"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 outline-none sm:px-6 lg:pb-12 lg:pt-8"
+          >
             {children}
           </main>
         </div>

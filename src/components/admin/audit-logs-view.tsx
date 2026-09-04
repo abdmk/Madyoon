@@ -166,10 +166,10 @@ export function AuditLogsView({ initialLogs }: { initialLogs: AuditLog[] }) {
             <table className="w-full text-sm">
               <thead className="border-b bg-muted/40">
                 <tr>
-                  <th className="p-3 text-start font-medium">الإجراء</th>
-                  <th className="p-3 text-start font-medium">المستخدم</th>
-                  <th className="p-3 text-start font-medium">التفاصيل</th>
-                  <th className="p-3 text-start font-medium">التوقيت</th>
+                  <th scope="col" className="p-3 text-start font-medium">الإجراء</th>
+                  <th scope="col" className="p-3 text-start font-medium">المستخدم</th>
+                  <th scope="col" className="p-3 text-start font-medium">التفاصيل</th>
+                  <th scope="col" className="p-3 text-start font-medium">التوقيت</th>
                 </tr>
               </thead>
               <tbody className="divide-y">

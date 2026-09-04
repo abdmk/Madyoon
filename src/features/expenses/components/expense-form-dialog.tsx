@@ -4,13 +4,13 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -140,14 +140,14 @@ export function ExpenseFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{expense ? 'تعديل المصروف' : 'إضافة مصروف'}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>{expense ? 'تعديل المصروف' : 'إضافة مصروف'}</SheetTitle>
+          <SheetDescription>
             سجّل مصاريفك اليومية لتعرف أين تذهب أموالك.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <fieldset disabled={loading} className="space-y-4 disabled:opacity-60">
@@ -240,16 +240,16 @@ export function ExpenseFormDialog({
           </div>
           </fieldset>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="submit" loading={saving || loading}>
               {expense ? 'حفظ التعديلات' : 'إضافة المصروف'}
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               إلغاء
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

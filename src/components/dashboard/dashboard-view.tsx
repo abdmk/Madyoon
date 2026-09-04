@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress, Skeleton } from '@/components/ui/misc';
 import { FinancialOverview } from './financial-overview';
-import { dueInfo, formatAmount, formatDate, formatPercent } from '@/lib/format';
+import { dueInfo, formatAmount, formatCompactAmount, formatDate, formatPercent } from '@/lib/format';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import type { DashboardData, DashboardPeriodSummary } from '@/lib/types';
@@ -73,7 +73,7 @@ export function DashboardView({
       <div className="grid grid-cols-2 gap-3 stagger sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         <StatCard
           label="المتبقي عليك"
-          value={formatAmount(debts.remaining, currency)}
+          value={formatCompactAmount(debts.remaining, currency)}
           hint={`${debts.active} دين قيد السداد`}
           icon={TrendingDown}
           tone="warning"
@@ -82,28 +82,28 @@ export function DashboardView({
         />
         <StatCard
           label="إجمالي الديون"
-          value={formatAmount(debts.total, currency)}
+          value={formatCompactAmount(debts.total, currency)}
           hint={`${debts.count} دين`}
           icon={Wallet}
           tone="primary"
         />
         <StatCard
           label="المسدد"
-          value={formatAmount(debts.paid, currency)}
+          value={formatCompactAmount(debts.paid, currency)}
           hint={`${debts.settled} دين مكتمل`}
           icon={CheckCircle2}
           tone="success"
         />
         <StatCard
           label="أقساط متأخرة"
-          value={formatAmount(debts.overdueAmount, currency)}
+          value={formatCompactAmount(debts.overdueAmount, currency)}
           hint={`${debts.overdue} قسط`}
           icon={AlertTriangle}
           tone="destructive"
         />
         <StatCard
           label="مستحقة قريباً"
-          value={formatAmount(debts.dueSoonAmount, currency)}
+          value={formatCompactAmount(debts.dueSoonAmount, currency)}
           hint={`${debts.dueSoon} قسط خلال ٧ أيام`}
           icon={Clock}
           tone="accent"

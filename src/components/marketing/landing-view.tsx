@@ -17,7 +17,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/misc';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { formatAmount } from '@/lib/format';
+import { formatAmount, formatCompactAmount } from '@/lib/format';
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
 
 const FEATURES = [
@@ -227,25 +227,25 @@ function ProductPreview() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <PreviewStat
                 label="إجمالي الديون"
-                value={formatAmount(4250000)}
+                value={formatCompactAmount(4250000)}
                 tone="primary"
                 icon={Wallet}
               />
               <PreviewStat
                 label="المتبقي"
-                value={formatAmount(1800000)}
+                value={formatCompactAmount(1800000)}
                 tone="warning"
                 icon={Receipt}
               />
               <PreviewStat
                 label="المسدد"
-                value={formatAmount(2450000)}
+                value={formatCompactAmount(2450000)}
                 tone="success"
                 icon={CheckCircle2}
               />
               <PreviewStat
                 label="مصاريف الشهر"
-                value={formatAmount(650000)}
+                value={formatCompactAmount(650000)}
                 tone="accent"
                 icon={LayoutDashboard}
               />

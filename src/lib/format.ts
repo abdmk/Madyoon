@@ -24,6 +24,28 @@ export function formatNumber(value: number | string | null | undefined) {
   return new Intl.NumberFormat('en-US').format(Number.isFinite(n) ? n : 0);
 }
 
+/**
+ * For a stat card's headline number, where the card's width — not the
+ * amount — sets the limit. IQD amounts routinely run into the millions, and
+ * spelling one out in full (17,000,000) forced `truncate` to cut it off
+ * mid-digit inside a narrow card. `1.2K`/`3.4M`/`5.1B` stays readable at any
+ * width; anything under 10,000 is shown in full since compact notation adds
+ * no value there.
+ */
+export function formatCompactAmount(value: number | string | null | undefined, currency?: string) {
+  const n = Number(value ?? 0);
+  const safe = Number.isFinite(n) ? n : 0;
+  const formatted =
+    Math.abs(safe) < 10_000
+      ? formatAmount(safe)
+      : new Intl.NumberFormat('en-US', {
+          notation: 'compact',
+          compactDisplay: 'short',
+          maximumFractionDigits: 1,
+        }).format(safe);
+  return currency ? `${formatted} ${currencySymbol(currency)}` : formatted;
+}
+
 export function formatPercent(value: number) {
   if (!Number.isFinite(value)) return '0%';
   return `${Math.round(value)}%`;

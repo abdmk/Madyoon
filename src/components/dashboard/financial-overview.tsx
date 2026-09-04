@@ -6,7 +6,7 @@ import { Banknote, Receipt, Scale, Wallet2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, Skeleton } from '@/components/ui/misc';
 import { StatCard } from '@/components/shared/stat-card';
-import { formatAmount } from '@/lib/format';
+import { formatAmount, formatCompactAmount } from '@/lib/format';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { DashboardPeriod, DashboardPeriodSummary } from '@/lib/types';
@@ -94,26 +94,26 @@ export function FinancialOverview({
           <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
             <StatCard
               label="إجمالي الإيرادات"
-              value={formatAmount(totals.revenues, currency)}
+              value={formatCompactAmount(totals.revenues, currency)}
               icon={Banknote}
               tone="success"
             />
             <StatCard
               label="إجمالي المصاريف"
-              value={formatAmount(totals.expenses, currency)}
+              value={formatCompactAmount(totals.expenses, currency)}
               icon={Receipt}
               tone="accent"
             />
             <StatCard
               label="صافي الربح"
-              value={formatAmount(net, currency)}
+              value={formatCompactAmount(net, currency)}
               hint={net >= 0 ? 'ربح' : 'خسارة'}
               icon={Scale}
               tone={net >= 0 ? 'success' : 'destructive'}
             />
             <StatCard
               label="المبالغ المحصّلة"
-              value={formatAmount(totals.collected, currency)}
+              value={formatCompactAmount(totals.collected, currency)}
               icon={Wallet2}
               tone="primary"
             />

@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { StatCard } from '@/components/shared/stat-card';
 import { Skeleton } from '@/components/ui/misc';
 import { useSession } from '@/components/session-provider';
-import { formatAmount, formatNumber } from '@/lib/format';
+import { formatAmount, formatCompactAmount, formatNumber } from '@/lib/format';
 import type { AnalyticsPoint } from '@/lib/types';
 
 // Recharts is the heaviest dependency this page pulls in — split into its own
@@ -78,11 +78,11 @@ export function AnalyticsView({ points }: { points: AnalyticsPoint[] }) {
       <PageHeader title="التحليلات" description="اتجاهات النظام خلال آخر ١٢ شهراً." />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="ديون مضافة" value={formatAmount(totals.debts, currency)} icon={Wallet} tone="primary" />
-        <StatCard label="مبالغ مسددة" value={formatAmount(totals.paid, currency)} icon={CheckCircle2} tone="success" />
+        <StatCard label="ديون مضافة" value={formatCompactAmount(totals.debts, currency)} icon={Wallet} tone="primary" />
+        <StatCard label="مبالغ مسددة" value={formatCompactAmount(totals.paid, currency)} icon={CheckCircle2} tone="success" />
         <StatCard
           label="مصاريف مسجّلة"
-          value={formatAmount(totals.expenses, currency)}
+          value={formatCompactAmount(totals.expenses, currency)}
           icon={Receipt}
           tone="accent"
         />

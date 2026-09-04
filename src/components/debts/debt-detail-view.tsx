@@ -43,7 +43,7 @@ import { DebtFormDialog } from './debt-form-dialog';
 import { PaymentDialog } from './payment-dialog';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { DEBT_CATEGORIES, DEBT_STATUS, PAYMENT_METHODS, PRIORITIES } from '@/lib/constants';
-import { dueInfo, formatAmount, formatDate, formatDateTime, formatPercent } from '@/lib/format';
+import { dueInfo, formatAmount, formatCompactAmount, formatDate, formatDateTime, formatPercent } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { DebtDetail, PaymentMethod } from '@/lib/types';
 
@@ -212,7 +212,7 @@ export function DebtDetailView({ detail }: { detail: DebtDetail }) {
       <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
         <StatCard
           label="المتبقي"
-          value={formatAmount(debt.remaining_amount, debt.currency)}
+          value={formatCompactAmount(debt.remaining_amount, debt.currency)}
           icon={Wallet}
           tone={debt.status === 'paid' ? 'success' : 'warning'}
           emphasis
@@ -220,13 +220,13 @@ export function DebtDetailView({ detail }: { detail: DebtDetail }) {
         />
         <StatCard
           label="الإجمالي"
-          value={formatAmount(debt.amount, debt.currency)}
+          value={formatCompactAmount(debt.amount, debt.currency)}
           icon={Receipt}
           tone="primary"
         />
         <StatCard
           label="المسدد"
-          value={formatAmount(debt.paid_amount, debt.currency)}
+          value={formatCompactAmount(debt.paid_amount, debt.currency)}
           hint={`${formatPercent(pct)} من الإجمالي`}
           icon={CheckCircle2}
           tone="success"

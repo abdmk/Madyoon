@@ -54,7 +54,7 @@ import {
 } from '@/components/ui/misc';
 import { RevenueFormDialog } from './revenue-form-dialog';
 import { REVENUE_CATEGORIES } from '@/lib/constants';
-import { formatAmount, formatDate } from '@/lib/format';
+import { formatAmount, formatCompactAmount, formatDate } from '@/lib/format';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PAGE_SIZE, revenueFiltersActive, revenueQueryString } from '@/lib/params';
@@ -199,20 +199,20 @@ export function RevenuesView({
       <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
         <StatCard
           label="إيرادات الشهر"
-          value={formatAmount(monthTotal, currency)}
+          value={formatCompactAmount(monthTotal, currency)}
           icon={CalendarDays}
           tone="success"
         />
         <StatCard
           label="إجمالي المعروض"
-          value={formatAmount(sum, currency)}
+          value={formatCompactAmount(sum, currency)}
           hint={`${total} عملية`}
           icon={TrendingUp}
           tone="primary"
         />
         <StatCard
           label="متوسط العملية"
-          value={formatAmount(total ? sum / total : 0, currency)}
+          value={formatCompactAmount(total ? sum / total : 0, currency)}
           icon={Calculator}
           tone="muted"
         />

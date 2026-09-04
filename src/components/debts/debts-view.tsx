@@ -57,7 +57,7 @@ import {
 import { DebtFormDialog } from './debt-form-dialog';
 import { PaymentDialog } from './payment-dialog';
 import { DEBT_CATEGORIES, DEBT_STATUS, PRIORITIES } from '@/lib/constants';
-import { dueInfo, formatAmount, formatDate } from '@/lib/format';
+import { dueInfo, formatAmount, formatCompactAmount, formatDate } from '@/lib/format';
 import { downloadCsv, printCurrentView, timestampedName } from '@/lib/export';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { DEBT_SORTS, DEBT_SORT_LABELS, PAGE_SIZE, debtFiltersActive, debtQueryString } from '@/lib/params';
@@ -181,9 +181,9 @@ export function DebtsView({
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
-        <StatCard label="الإجمالي" value={formatAmount(summary.total, currency)} icon={Wallet} tone="primary" />
-        <StatCard label="المتبقي" value={formatAmount(summary.remaining, currency)} icon={TrendingDown} tone="warning" />
-        <StatCard label="المسدد" value={formatAmount(summary.paid, currency)} icon={CheckCircle2} tone="success" />
+        <StatCard label="الإجمالي" value={formatCompactAmount(summary.total, currency)} icon={Wallet} tone="primary" />
+        <StatCard label="المتبقي" value={formatCompactAmount(summary.remaining, currency)} icon={TrendingDown} tone="warning" />
+        <StatCard label="المسدد" value={formatCompactAmount(summary.paid, currency)} icon={CheckCircle2} tone="success" />
         <StatCard
           label="متأخرة"
           value={summary.overdue}
